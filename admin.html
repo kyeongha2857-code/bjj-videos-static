@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>주짓수 영상 설정</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+<div id="scroll">
+<div class="wrap">
+  <header class="admin-head">
+    <div class="eyebrow">Settings</div>
+    <h1>영상 설정</h1>
+    <p class="lede">기술 이름, 영어 검색어, 영상 주소를 모두 고칠 수 있습니다. 영상 주소를 비워 두면 유튜브 검색으로 연결됩니다.</p>
+    <p class="msg">이 사이트에는 서버가 없어서, 편집한 내용은 이 브라우저에 초안으로만 저장됩니다. 공개 페이지에 반영하려면 <b>data.js 내려받기</b>로 받은 파일을 저장소의 <code>data.js</code>와 교체해서 커밋하세요.</p>
+  </header>
+
+  <div class="bar">
+    <div class="toolbar">
+      <button class="btn primary" id="download" type="button">data.js 내려받기</button>
+      <span class="status" id="status" role="status"></span>
+      <span class="spacer"></span>
+      <a class="btn" href="index.html?preview=1" target="_blank" rel="noopener">초안 미리보기</a>
+      <button class="btn" id="import-btn" type="button">파일 가져오기</button>
+      <input id="import-file" type="file" accept=".js,.json" hidden>
+      <button class="btn" id="reset" type="button">배포된 목록으로 되돌리기</button>
+      <a class="btn" href="index.html">공개 페이지</a>
+    </div>
+    <div class="stat" id="stat"></div>
+  </div>
+
+  <div id="editor"></div>
+</div>
+</div>
+<script src="data.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
