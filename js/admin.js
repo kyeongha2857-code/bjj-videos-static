@@ -109,12 +109,12 @@
 
   function changed() {
     updateStat();
-    setStatus('편집 중 (이 브라우저에 초안으로 저장됩니다)');
+    setStatus('편집 중 (저장하기 전까지는 이 브라우저에 초안으로만 남습니다)');
     clearTimeout(saveTimer);
     saveTimer = setTimeout(function () {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
-        setStatus('초안 저장됨. 반영하려면 data.js를 내려받아 저장소에 커밋하세요.');
+        setStatus('초안 저장됨. 공개 페이지에 반영하려면 [GitHub에 저장]을 누르세요.');
       } catch (e) {
         setStatus('이 브라우저에 초안을 저장하지 못했습니다. 작업이 끝나면 바로 data.js를 내려받으세요.', true);
       }
@@ -278,14 +278,26 @@
     return null;
   }
 
+  var HEADER = '// 기술 목록. 설정 페이지(admin.html)에서 저장하면 자동으로 갱신됩니다.\n' +
+    '// video: 영상 주소 (비우면 유튜브 검색으로 연결)\n';
+
+  function buildText(list) {
+    return HEADER + 'window.BJJ_DATA = ' + JSON.stringify(list, null, 1) + ';\n';
+  }
+
+  // data.js 본문에서 목록 배열만 꺼낸다
+  function parseText(text) {
+    var a = text.indexOf('[');
+    var b = text.lastIndexOf(']');
+    if (a < 0 || b < a) throw new Error('목록을 찾지 못했습니다.');
+    return normalize(JSON.parse(text.slice(a, b + 1)));
+  }
+
   function download() {
     var list = clean();
     var problem = validate(list);
     if (problem) { setStatus(problem, true); return; }
-    var text = '// 기술 목록. 설정 페이지(admin.html)에서 내려받은 data.js로 이 파일을 교체하면 됩니다.\n' +
-      '// video: 영상 주소 (비우면 유튜브 검색으로 연결)\n' +
-      'window.BJJ_DATA = ' + JSON.stringify(list, null, 1) + ';\n';
-    var blob = new Blob([text], { type: 'text/javascript;charset=utf-8' });
+    var blob = new Blob([buildText(list)], { type: 'text/javascript;charset=utf-8' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'data.js';
@@ -299,12 +311,8 @@
   function importFile(file) {
     var reader = new FileReader();
     reader.onload = function () {
-      var text = String(reader.result);
-      var a = text.indexOf('[');
-      var b = text.lastIndexOf(']');
       try {
-        if (a < 0 || b < a) throw new Error('x');
-        var list = normalize(JSON.parse(text.slice(a, b + 1)));
+        var list = parseText(String(reader.result));
         if (!window.confirm('편집 중인 내용이 가져온 파일 내용으로 바뀝니다. 계속할까요?')) return;
         data = list;
         changed();
@@ -316,7 +324,237 @@
     reader.readAsText(file, 'UTF-8');
   }
 
+  // ---------- GitHub 연결 ----------
+  var GH_KEY = 'bjjGh';
+  var ghEl = {
+    owner: document.getElementById('gh-owner'),
+    repo: document.getElementById('gh-repo'),
+    branch: document.getElementById('gh-branch'),
+    path: document.getElementById('gh-path'),
+    token: document.getElementById('gh-token'),
+    remember: document.getElementById('gh-remember'),
+    state: document.getElementById('gh-state'),
+    panel: document.getElementById('gh-panel')
+  };
+
+  function store(kind) {
+    try { return window[kind]; } catch (e) { return null; }
+  }
+
+  function readGh() {
+    var out = null;
+    ['localStorage', 'sessionStorage'].forEach(function (k) {
+      if (out) return;
+      var st = store(k);
+      try {
+        var raw = st && st.getItem(GH_KEY);
+        if (raw) out = JSON.parse(raw);
+      } catch (e) {}
+    });
+    return out || {};
+  }
+
+  // github.io 주소에서 저장소 주인과 이름을 미리 채운다 (예: 계정.github.io/저장소/)
+  function guessRepo() {
+    var m = /^([^.]+)\.github\.io$/i.exec(location.hostname);
+    var seg = location.pathname.split('/').filter(Boolean)[0];
+    return {
+      owner: m ? m[1] : '',
+      repo: m && seg && !/\.html?$/i.test(seg) ? seg : ''
+    };
+  }
+
+  function ghConfig() {
+    return {
+      owner: ghEl.owner.value.trim(),
+      repo: ghEl.repo.value.trim(),
+      branch: ghEl.branch.value.trim() || 'main',
+      path: ghEl.path.value.trim().replace(/^\/+/, '') || 'data.js',
+      token: ghEl.token.value.trim()
+    };
+  }
+
+  function ghReady(c) { return !!(c.owner && c.repo && c.token); }
+
+  function refreshGhState() {
+    var ok = ghReady(ghConfig());
+    ghEl.state.textContent = ok ? '연결됨' : '설정 필요';
+    ghEl.state.className = 'c ' + (ok ? 'ok' : 'warn');
+  }
+
+  function saveGh() {
+    var c = ghConfig();
+    var keep = ghEl.remember.checked;
+    var data = JSON.stringify(c);
+    try { localStorage.removeItem(GH_KEY); } catch (e) {}
+    try { sessionStorage.removeItem(GH_KEY); } catch (e) {}
+    try {
+      (keep ? localStorage : sessionStorage).setItem(GH_KEY, data);
+    } catch (e) {
+      setStatus('이 브라우저에 연결 정보를 저장하지 못했습니다. 이번에만 입력한 값으로 동작합니다.', true);
+    }
+    refreshGhState();
+  }
+
+  function initGh() {
+    var saved = readGh();
+    var guess = guessRepo();
+    ghEl.owner.value = saved.owner || guess.owner;
+    ghEl.repo.value = saved.repo || guess.repo;
+    ghEl.branch.value = saved.branch || 'main';
+    ghEl.path.value = saved.path || 'data.js';
+    ghEl.token.value = saved.token || '';
+    try { ghEl.remember.checked = !(store('sessionStorage') && sessionStorage.getItem(GH_KEY)); } catch (e) {}
+    refreshGhState();
+    if (!ghReady(ghConfig())) ghEl.panel.open = true;
+  }
+
+  function ghUrl(c) {
+    return 'https://api.github.com/repos/' + encodeURIComponent(c.owner) + '/' + encodeURIComponent(c.repo) +
+      '/contents/' + c.path.split('/').map(encodeURIComponent).join('/');
+  }
+
+  function ghHeaders(c, extra) {
+    var h = { 'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + c.token, 'X-GitHub-Api-Version': '2022-11-28' };
+    Object.keys(extra || {}).forEach(function (k) { h[k] = extra[k]; });
+    return h;
+  }
+
+  function ghError(res) {
+    if (res.status === 401) return '토큰이 올바르지 않거나 만료되었습니다. GitHub 연결에서 토큰을 다시 확인해 주세요.';
+    if (res.status === 403) return '이 토큰에 쓰기 권한이 없습니다. 토큰의 Contents 권한이 Read and write인지 확인해 주세요.';
+    if (res.status === 404) return '저장소나 파일을 찾지 못했습니다. 저장소 주인/이름/브랜치/경로와, 토큰이 이 저장소를 선택했는지 확인해 주세요.';
+    if (res.status === 409 || res.status === 422) return '저장소의 파일이 그 사이에 바뀌었습니다. 다시 한 번 저장해 주세요.';
+    return 'GitHub 요청이 실패했습니다. (' + res.status + ')';
+  }
+
+  function toBase64(text) {
+    var bytes = new TextEncoder().encode(text);
+    var bin = '';
+    for (var i = 0; i < bytes.length; i += 0x8000) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    }
+    return btoa(bin);
+  }
+
+  function fromBase64(b64) {
+    var bin = atob(String(b64).replace(/\s/g, ''));
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder('utf-8').decode(bytes);
+  }
+
+  function getRemote(c) {
+    return fetch(ghUrl(c) + '?ref=' + encodeURIComponent(c.branch) + '&_=' + Date.now(), {
+      headers: ghHeaders(c), cache: 'no-store'
+    });
+  }
+
+  var busy = false;
+  function setBusy(v) {
+    busy = v;
+    document.getElementById('publish').disabled = v;
+    document.getElementById('pull').disabled = v;
+  }
+
+  function needGh() {
+    var c = ghConfig();
+    if (!ghReady(c)) {
+      ghEl.panel.open = true;
+      setStatus('먼저 GitHub 연결 정보(저장소와 토큰)를 입력해 주세요.', true);
+      return null;
+    }
+    saveGh();
+    return c;
+  }
+
+  function publish() {
+    if (busy) return;
+    var list = clean();
+    var problem = validate(list);
+    if (problem) { setStatus(problem, true); return; }
+    var c = needGh();
+    if (!c) return;
+    var text = buildText(list);
+    setBusy(true);
+    setStatus('GitHub에 저장하는 중...');
+
+    function attempt(retry) {
+      return getRemote(c).then(function (res) {
+        if (res.status === 404) return null;          // 파일이 아직 없으면 새로 만든다
+        if (!res.ok) throw new Error(ghError(res));
+        return res.json();
+      }).then(function (remote) {
+        var body = {
+          message: '설정 페이지에서 영상 목록 수정',
+          content: toBase64(text),
+          branch: c.branch
+        };
+        if (remote && remote.sha) body.sha = remote.sha;
+        return fetch(ghUrl(c), {
+          method: 'PUT',
+          headers: ghHeaders(c, { 'Content-Type': 'application/json' }),
+          body: JSON.stringify(body)
+        });
+      }).then(function (res) {
+        if ((res.status === 409 || res.status === 422) && retry) return attempt(false);
+        if (!res.ok) throw new Error(ghError(res));
+        return res;
+      });
+    }
+
+    attempt(true).then(function () {
+      data = normalize(list);
+      try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); } catch (e) {}
+      var t = new Date();
+      setStatus('GitHub에 저장했습니다 (' + String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0') +
+        '). 1~2분 뒤 공개 페이지에 반영됩니다.');
+      render();
+    }).catch(function (e) {
+      setStatus(e && e.message && !/Failed to fetch|NetworkError|Load failed/i.test(e.message)
+        ? e.message : '네트워크 오류로 GitHub에 연결하지 못했습니다. 접속 환경을 확인해 주세요.', true);
+    }).then(function () { setBusy(false); });
+  }
+
+  function pull() {
+    if (busy) return;
+    var c = needGh();
+    if (!c) return;
+    if (!window.confirm('편집 중인 내용이 GitHub 저장소의 최신 목록으로 바뀝니다. 계속할까요?')) return;
+    setBusy(true);
+    setStatus('GitHub에서 불러오는 중...');
+    getRemote(c).then(function (res) {
+      if (!res.ok) throw new Error(ghError(res));
+      return res.json();
+    }).then(function (remote) {
+      data = parseText(fromBase64(remote.content));
+      try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); } catch (e) {}
+      render();
+      setStatus('GitHub 저장소의 최신 목록을 불러왔습니다.');
+    }).catch(function (e) {
+      setStatus(e && e.message && !/Failed to fetch|NetworkError|Load failed/i.test(e.message)
+        ? e.message : '네트워크 오류로 GitHub에 연결하지 못했습니다. 접속 환경을 확인해 주세요.', true);
+    }).then(function () { setBusy(false); });
+  }
+
   document.getElementById('download').addEventListener('click', download);
+  document.getElementById('publish').addEventListener('click', publish);
+  document.getElementById('pull').addEventListener('click', pull);
+  document.getElementById('gh-save').addEventListener('click', function () {
+    saveGh();
+    setStatus('연결 정보를 저장했습니다.');
+  });
+  document.getElementById('gh-forget').addEventListener('click', function () {
+    ghEl.token.value = '';
+    saveGh();
+    setStatus('저장된 토큰을 지웠습니다.');
+  });
+  ['owner', 'repo', 'branch', 'path', 'token'].forEach(function (k) {
+    ghEl[k].addEventListener('input', refreshGhState);
+  });
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); publish(); }
+  });
   document.getElementById('import-btn').addEventListener('click', function () {
     document.getElementById('import-file').click();
   });
@@ -325,7 +563,7 @@
     e.target.value = '';
   });
   document.getElementById('reset').addEventListener('click', function () {
-    if (!window.confirm('편집 중인 초안을 지우고 현재 배포된 목록으로 되돌립니다. 계속할까요?')) return;
+    if (!window.confirm('편집 중인 초안을 지우고 사이트에 배포된 목록으로 되돌립니다. 방금 GitHub에 저장했다면 반영 전의 옛 목록일 수 있으니, 그때는 [GitHub에서 불러오기]를 쓰세요. 계속할까요?')) return;
     try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
     data = normalize(clone(deployed));
     render();
@@ -336,6 +574,7 @@
   function syncBar() { document.documentElement.style.setProperty('--bar-h', bar.offsetHeight + 'px'); }
   window.addEventListener('resize', syncBar);
 
+  initGh();
   render();
   setStatus(loadedDraft ? '이 브라우저에 저장된 초안을 불러왔습니다.' : '');
   syncBar();

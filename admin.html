@@ -16,15 +16,44 @@
     <div class="eyebrow">Settings</div>
     <h1>영상 설정</h1>
     <p class="lede">기술 이름, 영어 검색어, 영상 주소를 모두 고칠 수 있습니다. 영상 주소를 비워 두면 유튜브 검색으로 연결됩니다.</p>
-    <p class="msg">이 사이트에는 서버가 없어서, 편집한 내용은 이 브라우저에 초안으로만 저장됩니다. 공개 페이지에 반영하려면 <b>data.js 내려받기</b>로 받은 파일을 저장소의 <code>data.js</code>와 교체해서 커밋하세요.</p>
+    <p class="msg">저장하면 GitHub 저장소의 <code>data.js</code>가 바로 업데이트되고, 1~2분 뒤 공개 페이지에 반영됩니다. 처음 한 번만 아래 GitHub 연결 정보를 입력해 주세요.</p>
+
+    <details class="sec gh" id="gh-panel">
+      <summary><span class="t">GitHub 연결</span><span class="c" id="gh-state">설정 필요</span></summary>
+      <div class="sec-body">
+        <div class="fields">
+          <label class="field"><span>저장소 주인</span><input id="gh-owner" type="text" autocomplete="off" spellcheck="false"></label>
+          <label class="field"><span>저장소 이름</span><input id="gh-repo" type="text" autocomplete="off" spellcheck="false"></label>
+          <label class="field"><span>브랜치</span><input id="gh-branch" type="text" autocomplete="off" spellcheck="false" value="main"></label>
+          <label class="field"><span>파일 경로</span><input id="gh-path" type="text" autocomplete="off" spellcheck="false" value="data.js"></label>
+        </div>
+        <div class="fields">
+          <label class="field"><span>액세스 토큰 (Personal Access Token)</span><input id="gh-token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_..."></label>
+        </div>
+        <label class="check"><input id="gh-remember" type="checkbox" checked> 이 브라우저에 토큰을 기억하기 (공용 PC나 회사 PC라면 끄고 쓰세요)</label>
+        <div class="actions">
+          <button class="btn sm" id="gh-save" type="button">연결 정보 저장</button>
+          <button class="btn sm danger" id="gh-forget" type="button">토큰 지우기</button>
+        </div>
+        <ol class="howto">
+          <li>GitHub 오른쪽 위 프로필 → <b>Settings</b> → <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b></li>
+          <li><b>Repository access</b>는 <b>Only select repositories</b>로 이 저장소만 고르세요.</li>
+          <li><b>Permissions</b> → <b>Contents</b>를 <b>Read and write</b>로 바꾸세요. (다른 권한은 필요 없습니다)</li>
+          <li>만료일을 정하고 만든 뒤, 한 번만 보이는 토큰을 위 칸에 붙여넣으세요.</li>
+        </ol>
+        <p class="hint">토큰은 이 브라우저에만 저장되고 GitHub 외에는 어디로도 전송되지 않습니다. 이 저장소에 쓸 수 있는 권한이라 남에게 알려주지 마세요.</p>
+      </div>
+    </details>
   </header>
 
   <div class="bar">
     <div class="toolbar">
-      <button class="btn primary" id="download" type="button">data.js 내려받기</button>
+      <button class="btn primary" id="publish" type="button">GitHub에 저장</button>
       <span class="status" id="status" role="status"></span>
       <span class="spacer"></span>
       <a class="btn" href="index.html?preview=1" target="_blank" rel="noopener">초안 미리보기</a>
+      <button class="btn" id="pull" type="button">GitHub에서 불러오기</button>
+      <button class="btn" id="download" type="button">data.js 내려받기</button>
       <button class="btn" id="import-btn" type="button">파일 가져오기</button>
       <input id="import-file" type="file" accept=".js,.json" hidden>
       <button class="btn" id="reset" type="button">배포된 목록으로 되돌리기</button>

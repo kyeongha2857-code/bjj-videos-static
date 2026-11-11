@@ -56,3 +56,14 @@ code { font-family: var(--font-mono); font-size: 12.5px; background: var(--surfa
   .itemhead { display: none; }
   .itemrow { grid-template-columns: 1fr; padding-bottom: 10px; border-bottom: 1px dashed var(--line); }
 }
+
+/* GitHub 연결 패널 */
+.gh { margin-top: 12px; }
+.gh .c.ok { color: var(--mat); font-weight: 700; }
+.gh .c.warn { color: var(--accent); }
+.check { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; font-size: 13px; color: var(--muted); }
+.check input { margin-top: 3px; }
+.howto { margin: 12px 0 0; padding-left: 20px; font-size: 13px; color: var(--muted); }
+.howto li { margin-top: 4px; }
+.howto b { color: var(--ink); font-weight: 500; }
+.gh .hint { margin-top: 10px; }
