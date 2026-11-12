@@ -48,17 +48,17 @@ window.BJJ_DATA = {
       {
        "ko": "새우빼기",
        "en": "hip escape shrimp",
-       "video": ""
+       "video": "https://www.instagram.com/reel/DfobjyXMArr/?obrf=MXh1Nmdkc244dWl1aA=="
       },
       {
        "ko": "브릿지",
        "en": "bridge",
-       "video": ""
+       "video": "https://www.instagram.com/reel/Dfob8AkMlj2/?cplk=b2duM2xyNjAxdnI5"
       },
       {
        "ko": "사이드 싯업",
        "en": "side sit up",
-       "video": ""
+       "video": "https://www.instagram.com/reel/DfobyyTsKGk/?obrf=MXh5bmVxbHphcDEwNA=="
       },
       {
        "ko": "테크니컬 스탠드업",
