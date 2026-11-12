@@ -392,7 +392,7 @@
       checkbox('관리자 페이지로 가는 링크 보이기', s.showAdminLink, function (v) { s.showAdminLink = v; }),
       s.showAdminLink
         ? h('div', { class: 'fields' }, [field('링크 글자', s.adminLinkText, function (v) { s.adminLinkText = v; })])
-        : h('p', { class: 'hint', text: '링크를 숨겨도 주소 뒤에 admin.html을 붙이면 이 페이지에 들어올 수 있습니다.' })
+        : h('p', { class: 'hint', text: '링크를 숨겨도 주소 뒤에 admin을 붙이면 이 페이지에 들어올 수 있습니다.' })
     ]));
 
     root.appendChild(card('색과 화면 모드', [
