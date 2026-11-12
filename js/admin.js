@@ -328,6 +328,48 @@
     return h('section', { class: 'card' }, [h('h2', { text: title })].concat(kids));
   }
 
+  // 파비콘: 이모지, 이미지 주소, 이미지 올리기 (64px로 줄여서 data.js에 넣는다)
+  function faviconBlock(s) {
+    var prev = h('img', { class: 'favprev', alt: '파비콘 미리보기', width: '32', height: '32' });
+    var input = textInput(s.favicon && s.favicon.indexOf('data:') === 0 ? '' : s.favicon,
+      '이모지(예: 🥋) 또는 이미지 주소', function (v) { s.favicon = v; paint(); });
+    var note = h('span', { class: 'status' });
+    var file = h('input', { type: 'file', accept: 'image/*', hidden: 'hidden' });
+    function paint() {
+      var href = B.faviconHref(s.favicon);
+      prev.style.visibility = href ? 'visible' : 'hidden';
+      if (href) prev.src = href;
+      note.textContent = s.favicon && s.favicon.indexOf('data:') === 0 ? '올린 이미지를 쓰는 중입니다.' : '';
+    }
+    file.addEventListener('change', function () {
+      var f = file.files && file.files[0];
+      if (!f) return;
+      var url = URL.createObjectURL(f);
+      var img = new Image();
+      img.onload = function () {
+        var c = document.createElement('canvas');
+        c.width = c.height = 64;
+        var side = Math.min(img.width, img.height) || 1;
+        c.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, 64, 64);
+        URL.revokeObjectURL(url);
+        change(function () { s.favicon = c.toDataURL('image/png'); });
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); note.textContent = '이미지를 읽지 못했습니다. 다른 파일을 골라 주세요.'; note.className = 'status dirty'; };
+      img.src = url;
+    });
+    paint();
+    return h('div', { class: 'favrow' }, [
+      h('span', { class: 'favlabel', text: '파비콘 (브라우저 탭의 작은 그림)' }),
+      h('div', { class: 'actions' }, [
+        prev, h('label', { class: 'field' }, [input]),
+        btn('이미지 올리기', 'sm', function () { file.click(); }),
+        btn('지우기', 'sm danger', function () { change(function () { s.favicon = ''; }); }),
+        file
+      ]),
+      note
+    ]);
+  }
+
   function renderSite() {
     var s = state.site;
     var D = B.DEFAULT_SITE;
@@ -357,6 +399,14 @@
         field('제목 위 작은 글씨 (비우면 숨김)', s.eyebrow, function (v) { s.eyebrow = v; })
       ]),
       h('div', { class: 'fields' }, [field('제목 아래 소개 글 (비우면 숨김)', s.lede, function (v) { s.lede = v; }, true)])
+    ]));
+
+    root.appendChild(card('브라우저 탭과 설명', [
+      h('div', { class: 'fields' }, [
+        field('사이트 설명 (검색 결과, 공유할 때 보이는 글)', s.description, function (v) { s.description = v; }, true)
+      ]),
+      faviconBlock(s),
+      h('p', { class: 'hint', text: '탭 이름은 위의 "제목"을 따라갑니다. 카카오톡 같은 곳에 주소를 붙여넣었을 때의 미리보기는 그쪽 서버가 읽는 방식이라 바로 안 바뀔 수 있어요.' })
     ]));
 
     root.appendChild(card('점수표', [

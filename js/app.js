@@ -33,7 +33,7 @@
 
   // 관리자 페이지에서 고친 사이트 문구를 화면에 반영
   function applySite() {
-    document.title = site.title || document.title;
+    B.applyHead(site);
     document.getElementById('site-eyebrow').textContent = site.eyebrow;
     document.getElementById('site-title').textContent = site.title;
     document.getElementById('site-lede').textContent = site.lede;

@@ -6,6 +6,8 @@ window.BJJ = (function () {
   var DEFAULT_SITE = {
     eyebrow: '노량진 주짓수락 · White Belt',
     title: '화이트벨트 기술 영상',
+    description: '',
+    favicon: '',
     lede: '기술 이름을 누르면 해당 기술 영상으로 이동합니다. 영상이 지정되지 않은 기술은 유튜브 검색 결과가 새 탭으로 열립니다.',
     scores: [
       { point: '2점', label: '테이크다운 · 스윕 · 니온벨리' },
@@ -144,9 +146,45 @@ window.BJJ = (function () {
       : '';
   }
 
+  // 파비콘 값(이모지, 이미지 주소, 업로드한 이미지)을 <link>에 쓸 주소로 바꾼다
+  function faviconHref(v) {
+    v = (v || '').trim();
+    if (!v) return '';
+    if (/^(https?:\/\/|data:image\/|\.{0,2}\/)/i.test(v) || /\.(png|jpe?g|gif|svg|ico|webp)(\?.*)?$/i.test(v)) return v;
+    var t = Array.from(v).slice(0, 2).join('').replace(/[<>&"']/g, '');
+    return 'data:image/svg+xml,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="50" font-size="80" text-anchor="middle" dominant-baseline="central">' + t + '</text></svg>');
+  }
+
+  // 브라우저 탭 이름, 설명, 파비콘을 설정에 맞춘다
+  function applyHead(site) {
+    if (site.title) document.title = site.title;
+    function meta(attr, name, val) {
+      var m = document.head.querySelector('meta[' + attr + '="' + name + '"]');
+      if (!val) { if (m) m.remove(); return; }
+      if (!m) { m = document.createElement('meta'); m.setAttribute(attr, name); document.head.appendChild(m); }
+      m.setAttribute('content', val);
+    }
+    meta('name', 'description', site.description);
+    meta('property', 'og:description', site.description);
+    meta('property', 'og:title', site.title);
+    var href = faviconHref(site.favicon);
+    var link = document.getElementById('bjj-favicon');
+    if (!href) { if (link) link.remove(); return; }
+    if (!link) {
+      link = document.createElement('link');
+      link.id = 'bjj-favicon';
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.removeAttribute('type');
+    link.href = href;
+  }
+
   return {
     DEFAULT_SITE: DEFAULT_SITE, uid: uid, normalize: normalize, isHttp: isHttp,
     stripParen: stripParen, searchUrl: searchUrl, link: link, youtubeId: youtubeId,
-    luminance: luminance, applyTheme: applyTheme
+    luminance: luminance, applyTheme: applyTheme,
+    faviconHref: faviconHref, applyHead: applyHead
   };
 })();
