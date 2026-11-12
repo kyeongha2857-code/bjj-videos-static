@@ -36,7 +36,7 @@ window.BJJ_DATA = {
  "sections": [
   {
    "id": "terms",
-   "title": "기본 용어 (움직임)!",
+   "title": "기본 용어 (움직임)",
    "desc": "스파링 전에 먼저 익히는 기본 움직임과 그립 용어.",
    "groups": [
     {
