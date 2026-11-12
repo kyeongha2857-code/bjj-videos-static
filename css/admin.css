@@ -119,3 +119,10 @@ select { width: auto; }
   .scorerow { grid-template-columns: 1fr auto; }
   .scorerow input:first-child { grid-column: 1 / -1; }
 }
+
+/* 토큰 파일 */
+.tokenbox { margin-top: 14px; padding: 14px; background: var(--bg); border-radius: 14px; }
+.tokenhead { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px; }
+.tokenbox .hint { margin-top: 4px; }
+.tokenbox input[type="password"] { background: var(--surface); }
+.badge.mute { color: var(--muted); }

@@ -487,10 +487,159 @@
 
   // ---------- GitHub 연결 ----------
   var gh = {};
-  ['owner', 'repo', 'branch', 'path', 'token', 'remember'].forEach(function (k) { gh[k] = $('gh-' + k); });
+  ['owner', 'repo', 'branch', 'path', 'token'].forEach(function (k) { gh[k] = $('gh-' + k); });
 
   function readJson(kind, key) {
     try { var st = store(kind); var raw = st && st.getItem(key); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+  }
+
+  // ---------- 토큰 파일 (이 PC의 파일에서 읽는다. 브라우저에는 저장하지 않는다) ----------
+  var tokenHandle = null;   // 고른 파일 (Chrome, Edge). 파일 위치만 기억하고 내용은 저장하지 않는다.
+  var tokenName = '';
+  var memToken = '';        // 읽어 온 토큰. 메모리에만 있고 새로고침하면 사라진다.
+  var tokenError = '';
+
+  function idb(mode, fn) {
+    return new Promise(function (resolve, reject) {
+      if (!window.indexedDB) { reject(new Error('no indexedDB')); return; }
+      var req = window.indexedDB.open('bjj-admin', 1);
+      req.onupgradeneeded = function () { req.result.createObjectStore('kv'); };
+      req.onerror = function () { reject(req.error); };
+      req.onsuccess = function () {
+        var db = req.result;
+        var tx = db.transaction('kv', mode);
+        var r = fn(tx.objectStore('kv'));
+        tx.oncomplete = function () { db.close(); resolve(r && r.result); };
+        tx.onerror = tx.onabort = function () { db.close(); reject(tx.error); };
+      };
+    });
+  }
+
+  // 파일 내용에서 토큰만 꺼낸다. 토큰 한 줄, token=..., 주석(#) 섞인 파일 모두 읽는다.
+  function parseToken(text) {
+    var m = /(github_pat_[A-Za-z0-9_]+|gh[pousr]_[A-Za-z0-9]+)/.exec(String(text));
+    if (m) return m[1];
+    var line = String(text).split(/\r?\n/).map(function (l) { return l.trim(); })
+      .filter(function (l) { return l && l.charAt(0) !== '#'; })[0] || '';
+    var eq = line.indexOf('=');
+    return (eq > -1 ? line.slice(eq + 1) : line).trim();
+  }
+
+  // interactive가 true이면 읽기 허용을 물어볼 수 있다 (버튼을 누른 직후에만 가능)
+  function readTokenFile(interactive) {
+    if (!tokenHandle) return Promise.resolve('');
+    var perm = interactive
+      ? tokenHandle.requestPermission({ mode: 'read' })
+      : tokenHandle.queryPermission({ mode: 'read' });
+    return Promise.resolve(perm).then(function (p) {
+      if (p !== 'granted') {
+        tokenError = '토큰 파일 읽기 허용이 필요합니다. [저장]이나 [연결 확인]을 누르면 허용 창이 나옵니다.';
+        return '';
+      }
+      return tokenHandle.getFile().then(function (f) { return f.text(); }).then(function (t) {
+        var tok = parseToken(t);
+        tokenError = tok ? '' : '토큰 파일이 비어 있습니다. 파일 안에 토큰을 한 줄로 적어 주세요.';
+        return tok;
+      });
+    }).catch(function (e) {
+      tokenError = e && e.name === 'SecurityError'
+        ? '허용 창을 띄우지 못했습니다. 버튼을 한 번 더 눌러 주세요.'
+        : '토큰 파일을 열지 못했습니다. 파일이 옮겨졌거나 지워졌을 수 있습니다. [토큰 파일 선택]으로 다시 연결해 주세요.';
+      return '';
+    });
+  }
+
+  // 토큰이 필요한 작업 직전에 파일에서 최신 토큰을 읽는다. 직접 입력한 토큰이 있으면 그것을 쓴다.
+  function ensureToken(interactive) {
+    if (gh.token.value.trim() || !tokenHandle) return Promise.resolve();
+    return readTokenFile(interactive).then(function (t) { memToken = t; refreshTokenUi(); });
+  }
+
+  function refreshTokenUi() {
+    var el = $('tf-state');
+    var text, cls = 'badge';
+    if (gh.token.value.trim()) { text = '직접 입력 (이 탭에서만)'; cls += ' ok'; }
+    else if (tokenHandle) { text = tokenName + (memToken ? ' · 읽음' : ' · 연결됨'); cls += ' ok'; }
+    else if (memToken) { text = (tokenName || '파일') + ' · 이번 접속에서만'; cls += ' ok'; }
+    else { text = '파일 없음'; cls += ' warn'; }
+    el.textContent = text;
+    el.className = cls;
+    $('tf-clear').hidden = !(tokenHandle || memToken);
+  }
+
+  function useHandle(h) {
+    tokenHandle = h;
+    tokenName = h.name;
+    memToken = '';
+    return idb('readwrite', function (st) { return st.put(h, 'token'); }).catch(function () {})
+      .then(function () { return readTokenFile(true); })
+      .then(function (t) { memToken = t; refreshGh(); });
+  }
+
+  function loadTokenHandle() {
+    return idb('readonly', function (st) { return st.get('token'); }).then(function (h) {
+      if (!h) return;
+      tokenHandle = h;
+      tokenName = h.name || '토큰 파일';
+      return readTokenFile(false).then(function (t) { memToken = t; });
+    }).catch(function () {}).then(refreshGh);
+  }
+
+  function tokenMsg(text, warn) {
+    var m = $('gh-msg');
+    m.textContent = text;
+    m.className = 'status' + (warn ? ' dirty' : '');
+  }
+
+  function pickTokenFile() {
+    if (!window.showOpenFilePicker) { $('tf-input').click(); return; }   // 이 브라우저는 매번 파일을 고른다
+    window.showOpenFilePicker({
+      multiple: false,
+      types: [{ description: '토큰 파일', accept: { 'text/plain': ['.txt', '.properties', '.token', '.key'] } }]
+    }).then(function (hs) {
+      return useHandle(hs[0]);
+    }).then(function () {
+      tokenMsg(memToken ? '토큰 파일을 연결했습니다.' : (tokenError || '토큰 파일을 연결했습니다.'), !memToken);
+    }).catch(function (e) {
+      if (e && e.name === 'AbortError') return;
+      tokenMsg('파일을 열지 못했습니다.', true);
+    });
+  }
+
+  function createTokenFile() {
+    var tok = gh.token.value.trim();
+    if (!tok) { tokenMsg('먼저 위 칸에 토큰을 붙여넣어 주세요.', true); return; }
+    if (!window.showSaveFilePicker) {
+      downloadText(tok + '\n', 'github-token.txt');
+      tokenMsg('github-token.txt를 내려받았습니다. 원하는 폴더에 두고 [토큰 파일 선택]으로 연결해 주세요.', true);
+      return;
+    }
+    window.showSaveFilePicker({
+      suggestedName: 'github-token.txt',
+      types: [{ description: '토큰 파일', accept: { 'text/plain': ['.txt'] } }]
+    }).then(function (h) {
+      return h.createWritable().then(function (w) {
+        return w.write(tok + '\n').then(function () { return w.close(); });
+      }).then(function () { return useHandle(h); });
+    }).then(function () {
+      gh.token.value = '';
+      refreshGh();
+      tokenMsg('토큰을 파일로 저장하고 연결했습니다. 이 칸에 붙여넣은 토큰은 지웠습니다.');
+    }).catch(function (e) {
+      if (e && e.name === 'AbortError') return;
+      tokenMsg('파일을 저장하지 못했습니다.', true);
+    });
+  }
+
+  function clearToken() {
+    tokenHandle = null;
+    tokenName = '';
+    memToken = '';
+    tokenError = '';
+    gh.token.value = '';
+    idb('readwrite', function (st) { return st.delete('token'); }).catch(function () {});
+    refreshGh();
+    tokenMsg('토큰 연결을 해제했습니다. 파일 자체는 지워지지 않으니 필요하면 직접 지워 주세요.');
   }
 
   // github.io 주소에서 저장소 주인과 이름을 미리 채운다 (예: 계정.github.io/저장소/)
@@ -506,13 +655,14 @@
       repo: gh.repo.value.trim(),
       branch: gh.branch.value.trim() || 'main',
       path: gh.path.value.trim().replace(/^\/+/, '') || 'data.js',
-      token: gh.token.value.trim()
+      token: gh.token.value.trim() || memToken
     };
   }
 
-  function ghReady(c) { return !!(c.owner && c.repo && c.token); }
+  function ghReady(c) { return !!(c.owner && c.repo && (c.token || tokenHandle)); }
 
   function refreshGh() {
+    refreshTokenUi();
     var ok = ghReady(ghConfig());
     $('gh-state').textContent = ok ? '연결 정보 있음' : '설정 필요';
     $('gh-state').className = 'badge ' + (ok ? 'ok' : 'warn');
@@ -523,25 +673,33 @@
       : 'GitHub 연결이 없어서, [저장]을 누르면 data.js 파일을 내려받습니다. 받은 파일을 저장소의 data.js와 교체해야 반영됩니다. 아래에서 연결해 두면 자동으로 반영됩니다.';
   }
 
+  // 저장소 정보만 이 브라우저에 보관한다. 토큰은 저장하지 않는다.
   function saveGh() {
-    var json = JSON.stringify(ghConfig());
+    var c = ghConfig();
+    var json = JSON.stringify({ owner: c.owner, repo: c.repo, branch: c.branch, path: c.path });
     try { localStorage.removeItem(GH_KEY); } catch (e) {}
     try { sessionStorage.removeItem(GH_KEY); } catch (e) {}
-    try { (gh.remember.checked ? localStorage : sessionStorage).setItem(GH_KEY, json); } catch (e) {}
+    try { localStorage.setItem(GH_KEY, json); } catch (e) {}
     refreshGh();
   }
 
   function initGh() {
-    var session = readJson('sessionStorage', GH_KEY);
-    var saved = readJson('localStorage', GH_KEY) || session || {};
+    var legacy = readJson('localStorage', GH_KEY) || readJson('sessionStorage', GH_KEY) || {};
     var guess = guessRepo();
-    gh.owner.value = saved.owner || config['github.owner'] || guess.owner;
-    gh.repo.value = saved.repo || config['github.repo'] || guess.repo;
-    gh.branch.value = saved.branch || config['github.branch'] || 'main';
-    gh.path.value = saved.path || config['github.path'] || 'data.js';
-    gh.token.value = saved.token || '';
-    gh.remember.checked = !session || !!readJson('localStorage', GH_KEY);
-    refreshGh();
+    gh.owner.value = legacy.owner || config['github.owner'] || guess.owner;
+    gh.repo.value = legacy.repo || config['github.repo'] || guess.repo;
+    gh.branch.value = legacy.branch || config['github.branch'] || 'main';
+    gh.path.value = legacy.path || config['github.path'] || 'data.js';
+    gh.token.value = '';
+    if (legacy.token) {
+      // 예전 방식으로 브라우저에 저장돼 있던 토큰은 지운다. 이번 접속에서만 메모리로 쓴다.
+      memToken = legacy.token;
+      tokenName = '예전에 저장된 토큰';
+      saveGh();
+      tokenMsg('예전에 이 브라우저에 저장돼 있던 토큰을 지웠습니다. 이번 접속에서만 쓰이니, [토큰 파일 선택]으로 PC 파일에 옮겨 두세요.', true);
+    } else {
+      saveGh();
+    }
   }
 
   function ghUrl(c, path) {
@@ -639,7 +797,11 @@
     setBusy(true);
     setStatus('저장하는 중...');
 
-    putFile(c, c.path, text, '관리자 페이지에서 내용 수정').then(function () {
+    ensureToken(true).then(function () {
+      var c2 = ghConfig();
+      if (!c2.token) throw new Error(tokenError || '토큰이 없습니다. [저장 설정]에서 토큰 파일을 연결해 주세요.');
+      return putFile(c2, c2.path, text, '관리자 페이지에서 내용 수정');
+    }).then(function () {
       state = B.normalize(out);
       dirty = false;
       persistNow();
@@ -664,7 +826,15 @@
     if (mode === 'manual' && dirty && !window.confirm('저장하지 않은 편집 내용이 GitHub의 최신 내용으로 바뀝니다. 계속할까요?')) return;
     setBusy(true);
     if (mode !== 'auto') setStatus('GitHub에서 불러오는 중...');
-    getRemote(c).then(function (res) {
+    ensureToken(mode !== 'auto').then(function () {
+      var c2 = ghConfig();
+      if (!c2.token) {
+        var err = new Error(tokenError || '토큰이 없습니다. [저장 설정]에서 토큰 파일을 연결해 주세요.');
+        err.soft = mode === 'auto';
+        throw err;
+      }
+      return getRemote(c2);
+    }).then(function (res) {
       if (!res.ok) throw new Error(ghError(res));
       return res.json();
     }).then(function (remote) {
@@ -678,6 +848,7 @@
       renderAll();
       setStatus(mode === 'discard' ? '변경을 버리고 마지막으로 저장된 내용으로 되돌렸습니다.' : 'GitHub의 최신 내용을 불러왔습니다.');
     }).catch(function (e) {
+      if (e && e.soft) { setStatus(e.message); return; }   // 페이지를 막 연 상태라 허용 창을 띄울 수 없을 때
       setStatus((mode === 'auto' ? 'GitHub에서 최신 내용을 불러오지 못해 사이트에 배포된 내용을 보여줍니다. ' : '') + errText(e), true);
     }).then(function () { setBusy(false); });
   }
@@ -716,10 +887,14 @@
     var msg = $('gh-msg');
     function say(text, warn) { msg.textContent = text; msg.className = 'status' + (warn ? ' dirty' : ''); }
     saveGh();
-    if (!ghReady(c)) { say('저장소 주인, 저장소 이름, 토큰을 모두 입력해 주세요.', true); return; }
+    if (!ghReady(c)) { say('저장소 주인, 저장소 이름을 입력하고 토큰 파일을 연결해 주세요.', true); return; }
     setBusy(true);
     say('확인하는 중...');
-    getRemote(c).then(function (res) {
+    ensureToken(true).then(function () {
+      var c2 = ghConfig();
+      if (!c2.token) throw new Error(tokenError || '토큰이 없습니다. 토큰 파일을 연결해 주세요.');
+      return getRemote(c2);
+    }).then(function (res) {
       if (res.ok) say('연결되었습니다. 저장소의 ' + c.path + ' 파일을 읽었습니다. (쓰기 권한은 첫 저장 때 확인됩니다)');
       else say(ghError(res), true);
     }).catch(function (e) { say(errText(e), true); }).then(function () { setBusy(false); });
@@ -761,17 +936,30 @@
   });
   $('collapse').addEventListener('click', function () { open = {}; renderList(); });
   $('gh-test').addEventListener('click', testGh);
-  $('gh-forget').addEventListener('click', function () {
-    gh.token.value = '';
-    saveGh();
-    $('gh-msg').textContent = '저장된 토큰을 지웠습니다.';
-    $('gh-msg').className = 'status';
+  $('tf-pick').addEventListener('click', pickTokenFile);
+  $('tf-create').addEventListener('click', createTokenFile);
+  $('tf-clear').addEventListener('click', clearToken);
+  $('tf-input').addEventListener('change', function (e) {
+    var f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var tok = parseToken(reader.result);
+      if (!tok) { tokenMsg('파일에서 토큰을 찾지 못했습니다.', true); return; }
+      tokenHandle = null;
+      tokenName = f.name;
+      memToken = tok;
+      refreshGh();
+      tokenMsg('토큰 파일을 읽었습니다. 이 브라우저에서는 이번 접속에서만 쓰이고, 다음에 열 때 다시 선택해야 합니다.');
+    };
+    reader.readAsText(f, 'UTF-8');
   });
-  ['owner', 'repo', 'branch', 'path', 'token'].forEach(function (k) {
+  ['owner', 'repo', 'branch', 'path'].forEach(function (k) {
     gh[k].addEventListener('input', refreshGh);
     gh[k].addEventListener('change', saveGh);
   });
-  gh.remember.addEventListener('change', saveGh);
+  gh.token.addEventListener('input', refreshGh);
   $('opt-download').addEventListener('change', function () {
     opts.download = $('opt-download').checked;
     try { localStorage.setItem(OPT_KEY, JSON.stringify(opts)); } catch (e) {}
@@ -898,7 +1086,11 @@
     var dir = c.path.indexOf('/') > -1 ? c.path.slice(0, c.path.lastIndexOf('/') + 1) : '';
     setBusy(true);
     say('저장하는 중...');
-    putFile(c, dir + 'config.properties', text, '관리자 설정 변경').then(function () {
+    ensureToken(true).then(function () {
+      var c2 = ghConfig();
+      if (!c2.token) throw new Error(tokenError || '토큰이 없습니다. [저장 설정]에서 토큰 파일을 연결해 주세요.');
+      return putFile(c2, dir + 'config.properties', text, '관리자 설정 변경');
+    }).then(function () {
       applied();
       say(doneText + ' 1~2분 뒤부터 적용됩니다.');
     }).catch(function (e) { say(errText(e), true); }).then(function () { setBusy(false); });
@@ -972,7 +1164,9 @@
     }
     renderAll();
     if (resumed) setStatus('저장하지 않은 편집 내용을 이어서 불러왔습니다.', true);
-    else if (ghReady(ghConfig())) pull('auto');
+    loadTokenHandle().then(function () {
+      if (!resumed && ghReady(ghConfig())) pull('auto');
+    });
   }
 
   loadConfig().then(function (cfg) {
