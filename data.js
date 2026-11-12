@@ -4,6 +4,8 @@ window.BJJ_DATA = {
  "site": {
   "eyebrow": "노량진 주짓수 락x함성 유도",
   "title": "주짓수 樂 가이드",
+  "description": "",
+  "favicon": "",
   "lede": "기술 이름을 누르면 해당 기술 영상으로 이동합니다. 영상이 지정되지 않은 기술은 유튜브 검색 결과가 새 탭으로 열립니다.",
   "scores": [
    {
@@ -46,7 +48,7 @@ window.BJJ_DATA = {
       {
        "ko": "새우빼기",
        "en": "hip escape shrimp",
-       "video": ""
+       "video": "https://www.naver.com"
       },
       {
        "ko": "브릿지",
