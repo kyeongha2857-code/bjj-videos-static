@@ -111,6 +111,21 @@
 
   btnKo.setAttribute('aria-pressed', String(lang === 'ko'));
   btnEn.setAttribute('aria-pressed', String(lang === 'en'));
+  // 개인 도메인으로 접속했더라도 관리자 링크는 github.io 주소로 열리게 한다
+  // (config.properties의 github.owner / github.repo 값을 사용)
+  (function adminLinkToGithubIo() {
+    if (/\.github\.io$/i.test(location.hostname) || !window.fetch) return;
+    fetch('config.properties?_=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+      return r.ok ? r.text() : '';
+    }).then(function (t) {
+      var o = /^\s*github\.owner\s*[=:]\s*(\S+)/m.exec(t), r = /^\s*github\.repo\s*[=:]\s*(\S+)/m.exec(t);
+      if (!o || !r) return;
+      var a = document.getElementById('admin-link');
+      a.href = 'https://' + o[1].toLowerCase() + '.github.io/' + r[1] + '/admin';
+      a.target = '_top';
+    }).catch(function () {});
+  })();
+
   applySite();
   render();
 })();
