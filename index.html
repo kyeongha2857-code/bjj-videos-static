@@ -21,7 +21,7 @@
 <div class="bar">
   <div class="tools">
     <div class="search"><input id="q" type="search" placeholder="기술 검색 (예: 암바, 스윕, 라쏘)" aria-label="기술 검색" autocomplete="off"></div>
-    <div class="seg" role="group" aria-label="검색 언어">
+    <div class="seg" id="lang-seg" role="group" aria-label="검색 언어">
       <button id="lang-ko" type="button" aria-pressed="true">한국어 검색</button>
       <button id="lang-en" type="button" aria-pressed="false">English 검색</button>
     </div>
@@ -33,7 +33,7 @@
 
 <footer>
   <p id="site-footer"></p>
-  <p><a href="admin.html">관리자</a></p>
+  <p id="admin-link-wrap"><a id="admin-link" href="admin.html">관리자</a></p>
 </footer>
 </div>
 </div>

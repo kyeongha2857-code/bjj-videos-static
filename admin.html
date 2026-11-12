@@ -29,15 +29,16 @@
     </div>
     <div class="tabs" role="tablist">
       <button class="tab" type="button" role="tab" data-tab="list" aria-selected="true">기술 목록</button>
-      <button class="tab" type="button" role="tab" data-tab="site" aria-selected="false">사이트 문구</button>
+      <button class="tab" type="button" role="tab" data-tab="site" aria-selected="false">화면 꾸미기</button>
       <button class="tab" type="button" role="tab" data-tab="save" aria-selected="false">저장 설정 <span class="dot" id="gh-dot"></span></button>
     </div>
   </div>
 
   <!-- 기술 목록 -->
   <div id="tab-list" role="tabpanel">
+    <p class="hint">기술 옆 칸에 유튜브 영상 주소를 붙여넣고 [저장]을 누르면 됩니다. 주소를 비워 두면 그 기술은 유튜브 검색으로 연결됩니다.</p>
     <div class="filters">
-      <input id="filter-q" type="search" placeholder="기술, 그룹, 영상 주소로 찾기" aria-label="기술 찾기" autocomplete="off">
+      <input id="filter-q" type="search" placeholder="기술 이름, 분류, 영상 주소로 찾기" aria-label="기술 찾기" autocomplete="off">
       <label class="check inline"><input id="filter-missing" type="checkbox"> 영상 없는 기술만</label>
       <button class="btn sm" id="expand" type="button">모두 펼치기</button>
       <button class="btn sm" id="collapse" type="button">모두 접기</button>
@@ -48,7 +49,7 @@
 
   <!-- 사이트 문구 -->
   <div id="tab-site" role="tabpanel" hidden>
-    <p class="hint">공개 페이지에 보이는 문구입니다. 고친 뒤 [저장]을 누르면 기술 목록과 함께 반영됩니다.</p>
+    <p class="hint">공개 페이지에 보이는 글자와 색을 모두 여기서 바꿉니다. 고친 뒤 [미리보기]로 확인하고 [저장]을 누르세요.</p>
     <div id="site-form"></div>
   </div>
 

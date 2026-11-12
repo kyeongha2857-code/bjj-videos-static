@@ -43,6 +43,18 @@
     box.innerHTML = site.scores.map(function (s) {
       return '<div><b>' + esc(s.point) + '</b><span>' + esc(s.label) + '</span></div>';
     }).join('');
+    input.placeholder = site.searchPlaceholder;
+    input.setAttribute('aria-label', site.searchPlaceholder || '기술 검색');
+    btnKo.textContent = site.langKoLabel;
+    btnEn.textContent = site.langEnLabel;
+    document.getElementById('lang-seg').hidden = !site.showLang;
+    if (!site.showLang) lang = 'ko';
+    document.getElementById('admin-link').textContent = site.adminLinkText || '관리자';
+    document.getElementById('admin-link-wrap').hidden = !site.showAdminLink;
+    document.getElementById('site-eyebrow').hidden = !site.eyebrow;
+    document.getElementById('site-lede').hidden = !site.lede;
+    document.getElementById('site-footer').hidden = !site.footer;
+    B.applyTheme(site);
   }
 
   function render() {
@@ -74,7 +86,7 @@
       }
     });
 
-    main.innerHTML = html || '<p class="empty">맞는 기술이 없습니다. 다른 이름으로 검색해 보세요.</p>';
+    main.innerHTML = html || '<p class="empty">' + esc(site.emptyText) + '</p>';
     nav.innerHTML = navHtml;
     syncBar();
   }

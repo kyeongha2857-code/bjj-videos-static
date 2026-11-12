@@ -148,9 +148,9 @@
     if (f && !root.firstChild) root.appendChild(h('p', { class: 'empty', text: '조건에 맞는 기술이 없습니다.' }));
     if (!f) {
       root.appendChild(h('div', { class: 'actions' }, [
-        btn('+ 섹션 추가', '', function () {
+        btn('+ 큰 분류 추가', '', function () {
           change(function () {
-            var s = { id: B.uid(), title: '새 섹션', desc: '', groups: [{ name: '새 그룹', note: '', items: [] }] };
+            var s = { id: B.uid(), title: '새 큰 분류', desc: '', groups: [{ name: '새 작은 분류', note: '', items: [] }] };
             state.sections.push(s);
             open[s.id] = true;
           });
@@ -181,20 +181,20 @@
     var body = h('div', { class: 'sec-body' });
     if (!f) {
       body.appendChild(h('div', { class: 'fields' }, [
-        field('섹션 제목', sec.title, function (v) { sec.title = v; titleSpan.textContent = v || '(제목 없음)'; }),
-        field('섹션 설명', sec.desc, function (v) { sec.desc = v; })
+        field('큰 분류 이름', sec.title, function (v) { sec.title = v; titleSpan.textContent = v || '(제목 없음)'; }),
+        field('설명 (선택)', sec.desc, function (v) { sec.desc = v; })
       ]));
       body.appendChild(h('div', { class: 'actions' }, [
         btn('↑ 위로', 'sm', function () { move(state.sections, si, -1); }),
         btn('↓ 아래로', 'sm', function () { move(state.sections, si, 1); }),
-        btn('섹션 삭제', 'sm danger', function () { removeAt(state.sections, si, '"' + (sec.title || '섹션') + '" 섹션을'); })
+        btn('큰 분류 삭제', 'sm danger', function () { removeAt(state.sections, si, '"' + (sec.title || '큰 분류') + '" 큰 분류를'); })
       ]));
     }
     groups.forEach(function (n) { body.appendChild(n); });
     if (!f) {
       body.appendChild(h('div', { class: 'actions' }, [
-        btn('+ 그룹 추가', '', function () {
-          change(function () { sec.groups.push({ name: '새 그룹', note: '', items: [] }); open[sec.id] = true; });
+        btn('+ 작은 분류 추가', '', function () {
+          change(function () { sec.groups.push({ name: '새 작은 분류', note: '', items: [] }); open[sec.id] = true; });
         })
       ]));
     }
@@ -210,22 +210,22 @@
 
     var box = h('div', { class: 'grp' });
     if (f) {
-      box.appendChild(h('div', { class: 'grp-name', text: g.name || '(이름 없는 그룹)' }));
+      box.appendChild(h('div', { class: 'grp-name', text: g.name || '(이름 없는 작은 분류)' }));
     } else {
       box.appendChild(h('div', { class: 'fields' }, [
-        field('그룹 이름', g.name, function (v) { g.name = v; }),
-        field('그룹 메모 (선택, 공개 페이지에 안내문으로 보임)', g.note, function (v) { g.note = v; }, true)
+        field('작은 분류 이름', g.name, function (v) { g.name = v; }),
+        field('안내 글 (선택, 공개 페이지에 함께 보임)', g.note, function (v) { g.note = v; }, true)
       ]));
       box.appendChild(h('div', { class: 'actions' }, [
-        btn('↑', 'sm', function () { move(sec.groups, gi, -1); }, '그룹을 위로'),
-        btn('↓', 'sm', function () { move(sec.groups, gi, 1); }, '그룹을 아래로'),
-        btn('그룹 삭제', 'sm danger', function () { removeAt(sec.groups, gi, '"' + (g.name || '그룹') + '" 그룹을'); })
+        btn('↑', 'sm', function () { move(sec.groups, gi, -1); }, '작은 분류를 위로'),
+        btn('↓', 'sm', function () { move(sec.groups, gi, 1); }, '작은 분류를 아래로'),
+        btn('작은 분류 삭제', 'sm danger', function () { removeAt(sec.groups, gi, '"' + (g.name || '작은 분류') + '" 작은 분류를'); })
       ]));
     }
     if (rows.length) {
       box.appendChild(h('div', { class: 'itemhead' }, [
         h('span', { text: '영상' }), h('span', { text: '기술 이름' }),
-        h('span', { text: '영상 주소 (비우면 유튜브 검색)' }), h('span', { text: '영어 검색어' }), h('span')
+        h('span', { text: '영상 주소 (비우면 유튜브 검색)' }), h('span', { text: '영어 검색어 (선택)' }), h('span')
       ]));
     }
     rows.forEach(function (r) { box.appendChild(r); });
@@ -292,9 +292,43 @@
     ]);
   }
 
-  // ---------- 사이트 문구 ----------
+  // ---------- 화면 꾸미기 (공개 페이지의 글자와 색) ----------
+  function checkbox(label, checked, onToggle) {
+    var box = h('input', { type: 'checkbox' });
+    box.checked = checked;
+    box.addEventListener('change', function () { change(function () { onToggle(box.checked); }); });
+    return h('label', { class: 'check' }, [box, h('span', { text: label })]);
+  }
+
+  function colorField(label, key, hint) {
+    var s = state.site;
+    var picker = h('input', { type: 'color', 'aria-label': label });
+    picker.value = s[key];
+    var code = h('code', { text: s[key] });
+    var warn = h('span', { class: 'status dirty' });
+    function check() {
+      warn.textContent = B.luminance(s[key]) > 0.6 ? '색이 너무 밝으면 글자가 잘 안 보일 수 있어요.' : '';
+    }
+    picker.addEventListener('input', function () {
+      s[key] = picker.value.toLowerCase();
+      code.textContent = s[key];
+      check();
+      edited();
+    });
+    check();
+    return h('div', { class: 'colorrow' }, [
+      picker,
+      h('div', null, [h('div', { class: 'colorlabel' }, [h('b', { text: label }), code]), h('div', { class: 'hint', text: hint }), warn])
+    ]);
+  }
+
+  function card(title, kids) {
+    return h('section', { class: 'card' }, [h('h2', { text: title })].concat(kids));
+  }
+
   function renderSite() {
     var s = state.site;
+    var D = B.DEFAULT_SITE;
     var root = $('site-form');
     root.textContent = '';
 
@@ -307,32 +341,68 @@
       ]));
     });
 
-    root.appendChild(h('section', { class: 'card' }, [
-      h('h2', { text: '머리말' }),
+    var themeSel = h('select', { 'aria-label': '화면 모드' }, [
+      h('option', { value: 'auto', text: '보는 사람 기기 설정에 맞춤' }),
+      h('option', { value: 'light', text: '항상 밝게' }),
+      h('option', { value: 'dark', text: '항상 어둡게' })
+    ]);
+    themeSel.value = s.theme;
+    themeSel.addEventListener('change', function () { change(function () { s.theme = themeSel.value; }); });
+
+    root.appendChild(card('맨 위 제목 부분', [
       h('div', { class: 'fields' }, [
-        field('작은 머리글', s.eyebrow, function (v) { s.eyebrow = v; }),
-        field('제목', s.title, function (v) { s.title = v; })
+        field('제목 (브라우저 탭 이름도 같이 바뀝니다)', s.title, function (v) { s.title = v; }),
+        field('제목 위 작은 글씨 (비우면 숨김)', s.eyebrow, function (v) { s.eyebrow = v; })
       ]),
-      h('div', { class: 'fields' }, [field('소개 문구', s.lede, function (v) { s.lede = v; }, true)])
+      h('div', { class: 'fields' }, [field('제목 아래 소개 글 (비우면 숨김)', s.lede, function (v) { s.lede = v; }, true)])
     ]));
-    root.appendChild(h('section', { class: 'card' }, [
-      h('h2', { text: '점수표' }),
+
+    root.appendChild(card('점수표', [
+      h('p', { class: 'hint', text: '칸을 모두 지우면 점수표가 보이지 않습니다.' }),
       scoreBox,
       h('div', { class: 'actions' }, [
         btn('+ 점수 칸 추가', 'sm', function () { change(function () { s.scores.push({ point: '', label: '' }); }); })
       ])
     ]));
-    root.appendChild(h('section', { class: 'card' }, [
-      h('h2', { text: '유튜브 검색어' }),
+
+    root.appendChild(card('검색창', [
+      h('div', { class: 'fields' }, [
+        field('검색창 안에 흐리게 보이는 안내 글', s.searchPlaceholder, function (v) { s.searchPlaceholder = v; }),
+        field('검색 결과가 없을 때 보이는 글', s.emptyText, function (v) { s.emptyText = v; })
+      ])
+    ]));
+
+    root.appendChild(card('유튜브 검색 방식', [
       h('p', { class: 'hint', text: '영상 주소가 없는 기술은 "기술 이름 + 아래 단어"로 유튜브를 검색합니다.' }),
       h('div', { class: 'fields' }, [
         field('한국어 검색에 붙일 단어', s.koSuffix, function (v) { s.koSuffix = v; }),
-        field('English 검색에 붙일 단어', s.enSuffix, function (v) { s.enSuffix = v; })
-      ])
+        field('영어 검색에 붙일 단어', s.enSuffix, function (v) { s.enSuffix = v; })
+      ]),
+      checkbox('한국어 / 영어 검색을 고르는 버튼 보이기', s.showLang, function (v) { s.showLang = v; }),
+      s.showLang ? h('div', { class: 'fields' }, [
+        field('한국어 버튼 글자', s.langKoLabel, function (v) { s.langKoLabel = v; }),
+        field('영어 버튼 글자', s.langEnLabel, function (v) { s.langEnLabel = v; })
+      ]) : null
     ]));
-    root.appendChild(h('section', { class: 'card' }, [
-      h('h2', { text: '맨 아래 안내 문구' }),
-      h('div', { class: 'fields' }, [field('안내 문구', s.footer, function (v) { s.footer = v; }, true)])
+
+    root.appendChild(card('맨 아래 부분', [
+      h('div', { class: 'fields' }, [field('안내 글 (비우면 숨김)', s.footer, function (v) { s.footer = v; }, true)]),
+      checkbox('관리자 페이지로 가는 링크 보이기', s.showAdminLink, function (v) { s.showAdminLink = v; }),
+      s.showAdminLink
+        ? h('div', { class: 'fields' }, [field('링크 글자', s.adminLinkText, function (v) { s.adminLinkText = v; })])
+        : h('p', { class: 'hint', text: '링크를 숨겨도 주소 뒤에 admin.html을 붙이면 이 페이지에 들어올 수 있습니다.' })
+    ]));
+
+    root.appendChild(card('색과 화면 모드', [
+      colorField('강조 색', 'accent', '점수, 영상이 지정된 기술의 테두리, 마우스를 올렸을 때 색입니다.'),
+      colorField('보조 색', 'mat', '작은 분류 이름, 구분선, 선택된 버튼 색입니다.'),
+      h('label', { class: 'field narrow' }, [h('span', { text: '화면 모드' }), themeSel]),
+      h('p', { class: 'hint', text: '어두운 화면에서는 고른 색이 자동으로 조금 밝게 바뀝니다.' }),
+      h('div', { class: 'actions' }, [
+        btn('색과 화면 모드를 처음 상태로', 'sm', function () {
+          change(function () { s.accent = D.accent; s.mat = D.mat; s.theme = D.theme; });
+        })
+      ])
     ]));
   }
 
@@ -345,13 +415,12 @@
   // ---------- 저장할 내용 만들기 / 검사 ----------
   function clean() {
     var s = state.site;
+    var site = {};
+    Object.keys(s).forEach(function (k) { site[k] = typeof s[k] === 'string' ? s[k].trim() : s[k]; });
+    site.scores = s.scores.map(function (x) { return { point: x.point.trim(), label: x.label.trim() }; })
+      .filter(function (x) { return x.point || x.label; });
     return {
-      site: {
-        eyebrow: s.eyebrow.trim(), title: s.title.trim(), lede: s.lede.trim(),
-        scores: s.scores.map(function (x) { return { point: x.point.trim(), label: x.label.trim() }; })
-          .filter(function (x) { return x.point || x.label; }),
-        footer: s.footer.trim(), koSuffix: s.koSuffix.trim(), enSuffix: s.enSuffix.trim()
-      },
+      site: site,
       sections: state.sections.map(function (sec) {
         return {
           id: sec.id, title: sec.title.trim(), desc: sec.desc.trim(),
@@ -369,13 +438,13 @@
   }
 
   function validate(out) {
-    if (!out.site.title) return '[사이트 문구]의 제목이 비어 있습니다.';
+    if (!out.site.title) return '[화면 꾸미기]의 제목이 비어 있습니다.';
     for (var si = 0; si < out.sections.length; si++) {
       var s = out.sections[si];
-      if (!s.title) return (si + 1) + '번째 섹션의 제목이 비어 있습니다.';
+      if (!s.title) return (si + 1) + '번째 큰 분류의 이름이 비어 있습니다.';
       for (var gi = 0; gi < s.groups.length; gi++) {
         var g = s.groups[gi];
-        if (!g.name) return '"' + s.title + '"의 ' + (gi + 1) + '번째 그룹 이름이 비어 있습니다.';
+        if (!g.name) return '"' + s.title + '"의 ' + (gi + 1) + '번째 작은 분류 이름이 비어 있습니다.';
         for (var ii = 0; ii < g.items.length; ii++) {
           var it = g.items[ii];
           var where = '"' + s.title + '" > "' + g.name + '" > ' + (ii + 1) + '번째 기술: ';

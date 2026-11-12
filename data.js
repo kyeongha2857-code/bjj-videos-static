@@ -5,9 +5,6 @@ window.BJJ_DATA = {
   "eyebrow": "노량진 주짓수락 · White Belt",
   "title": "화이트벨트 기술 영상",
   "lede": "기술 이름을 누르면 해당 기술 영상으로 이동합니다. 영상이 지정되지 않은 기술은 유튜브 검색 결과가 새 탭으로 열립니다.",
-  "footer": "빨간 테두리 기술은 지정된 영상으로 바로 연결되고, 나머지는 유튜브 검색 결과로 연결됩니다. 자료 출처: 노량진 주짓수락 화이트벨트 가이드라인.",
-  "koSuffix": "주짓수",
-  "enSuffix": "BJJ",
   "scores": [
    {
     "point": "2점",
@@ -21,7 +18,20 @@ window.BJJ_DATA = {
     "point": "4점",
     "label": "마운트 · 백마운트"
    }
-  ]
+  ],
+  "searchPlaceholder": "기술 검색 (예: 암바, 스윕, 라쏘)",
+  "emptyText": "맞는 기술이 없습니다. 다른 이름으로 검색해 보세요.",
+  "showLang": true,
+  "langKoLabel": "한국어 검색",
+  "langEnLabel": "English 검색",
+  "koSuffix": "주짓수",
+  "enSuffix": "BJJ",
+  "footer": "빨간 테두리 기술은 지정된 영상으로 바로 연결되고, 나머지는 유튜브 검색 결과로 연결됩니다. 자료 출처: 노량진 주짓수락 화이트벨트 가이드라인.",
+  "showAdminLink": true,
+  "adminLinkText": "관리자",
+  "accent": "#c8372d",
+  "mat": "#1d2a4a",
+  "theme": "auto"
  },
  "sections": [
   {

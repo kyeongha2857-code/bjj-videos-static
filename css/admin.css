@@ -103,3 +103,13 @@ input:focus-visible, textarea:focus-visible, .btn:focus-visible, .tab:focus-visi
   .scorerow { grid-template-columns: 1fr auto; }
   .scorerow input:first-child { grid-column: 1 / -1; }
 }
+
+/* 화면 꾸미기: 색 고르기 */
+.colorrow { display: flex; gap: 12px; align-items: flex-start; margin-top: 12px; }
+.colorrow input[type="color"] { flex: none; width: 48px; height: 40px; padding: 2px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); cursor: pointer; }
+.colorrow > div { min-width: 0; }
+.colorlabel { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px; }
+.colorrow .hint { margin-top: 2px; }
+.field.narrow { flex: none; max-width: 320px; margin-top: 14px; }
+select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 7px 9px; }
+.check span { min-width: 0; }

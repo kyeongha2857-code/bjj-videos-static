@@ -2,6 +2,7 @@
 window.BJJ = (function () {
   'use strict';
 
+  // 관리자 페이지에서 바꿀 수 있는 화면 설정의 기본값
   var DEFAULT_SITE = {
     eyebrow: '노량진 주짓수락 · White Belt',
     title: '화이트벨트 기술 영상',
@@ -11,9 +12,19 @@ window.BJJ = (function () {
       { point: '3점', label: '가드패스' },
       { point: '4점', label: '마운트 · 백마운트' }
     ],
-    footer: '빨간 테두리 기술은 지정된 영상으로 바로 연결되고, 나머지는 유튜브 검색 결과로 연결됩니다. 자료 출처: 노량진 주짓수락 화이트벨트 가이드라인.',
+    searchPlaceholder: '기술 검색 (예: 암바, 스윕, 라쏘)',
+    emptyText: '맞는 기술이 없습니다. 다른 이름으로 검색해 보세요.',
+    showLang: true,
+    langKoLabel: '한국어 검색',
+    langEnLabel: 'English 검색',
     koSuffix: '주짓수',
-    enSuffix: 'BJJ'
+    enSuffix: 'BJJ',
+    footer: '빨간 테두리 기술은 지정된 영상으로 바로 연결되고, 나머지는 유튜브 검색 결과로 연결됩니다. 자료 출처: 노량진 주짓수락 화이트벨트 가이드라인.',
+    showAdminLink: true,
+    adminLinkText: '관리자',
+    accent: '#c8372d',
+    mat: '#1d2a4a',
+    theme: 'auto'
   };
 
   var counter = 0;
@@ -21,6 +32,7 @@ window.BJJ = (function () {
   function str(v) { return typeof v === 'string' ? v : ''; }
   function isObj(v) { return !!v && typeof v === 'object'; }
   function list(v) { return Array.isArray(v) ? v.filter(isObj) : []; }
+  function isColor(v) { return typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v); }
 
   // 어떤 모양의 데이터가 와도 { site, sections } 형태의 새 사본으로 맞춘다.
   // (예전 형식인 섹션 배열만 있는 data.js도 그대로 읽는다)
@@ -28,11 +40,20 @@ window.BJJ = (function () {
     var src = Array.isArray(raw) ? { sections: raw } : (isObj(raw) ? raw : {});
     var site = isObj(src.site) ? src.site : {};
     var out = { site: {}, sections: [] };
-    ['eyebrow', 'title', 'lede', 'footer', 'koSuffix', 'enSuffix'].forEach(function (k) {
-      out.site[k] = typeof site[k] === 'string' ? site[k] : DEFAULT_SITE[k];
-    });
-    out.site.scores = list(Array.isArray(site.scores) ? site.scores : DEFAULT_SITE.scores).map(function (x) {
-      return { point: str(x.point), label: str(x.label) };
+    Object.keys(DEFAULT_SITE).forEach(function (k) {
+      var d = DEFAULT_SITE[k];
+      var v = site[k];
+      if (k === 'scores') {
+        out.site.scores = list(Array.isArray(v) ? v : d).map(function (x) {
+          return { point: str(x.point), label: str(x.label) };
+        });
+      } else if (k === 'accent' || k === 'mat') {
+        out.site[k] = isColor(v) ? v.toLowerCase() : d;
+      } else if (k === 'theme') {
+        out.site.theme = v === 'light' || v === 'dark' ? v : 'auto';
+      } else {
+        out.site[k] = typeof v === typeof d ? v : d;
+      }
     });
     var seen = {};
     list(src.sections).forEach(function (sec) {
@@ -77,8 +98,55 @@ window.BJJ = (function () {
     return m ? m[1] : '';
   }
 
+  // ---------- 색 ----------
+  function rgb(hex) { return [1, 3, 5].map(function (i) { return parseInt(hex.slice(i, i + 2), 16); }); }
+  function hex(c) {
+    return '#' + c.map(function (v) { return ('0' + Math.round(Math.max(0, Math.min(255, v))).toString(16)).slice(-2); }).join('');
+  }
+  function mix(a, b, t) {
+    var x = rgb(a), y = rgb(b);
+    return hex(x.map(function (v, i) { return v + (y[i] - v) * t; }));
+  }
+  // 0(검정) ~ 1(흰색) 밝기
+  function luminance(h) {
+    var c = rgb(h).map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+  function inkOn(h) { return luminance(h) > 0.45 ? '#14080a' : '#ffffff'; }
+
+  // 관리자 페이지에서 고른 색과 화면 모드를 페이지에 적용한다.
+  // 어두운 화면에서는 고른 색을 밝게 바꿔 글자가 보이게 한다.
+  function applyTheme(site) {
+    var root = document.documentElement;
+    if (site.theme === 'light' || site.theme === 'dark') root.setAttribute('data-theme', site.theme);
+    else root.removeAttribute('data-theme');
+
+    var light = '', dark = '';
+    if (site.accent !== DEFAULT_SITE.accent) {
+      var da = mix(site.accent, '#ffffff', 0.3);
+      light += '--accent:' + site.accent + ';--accent-ink:' + inkOn(site.accent) + ';';
+      dark += '--accent:' + da + ';--accent-ink:' + inkOn(da) + ';';
+    }
+    if (site.mat !== DEFAULT_SITE.mat) {
+      light += '--mat:' + site.mat + ';';
+      dark += '--mat:' + mix(site.mat, '#ffffff', 0.55) + ';';
+    }
+    var el = document.getElementById('bjj-theme');
+    if (!el) {
+      el = document.createElement('style');
+      el.id = 'bjj-theme';
+      document.head.appendChild(el);
+    }
+    el.textContent = light
+      ? ':root{' + light + '}' +
+        '@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){' + dark + '}}' +
+        ':root[data-theme="dark"]{' + dark + '}'
+      : '';
+  }
+
   return {
     DEFAULT_SITE: DEFAULT_SITE, uid: uid, normalize: normalize, isHttp: isHttp,
-    stripParen: stripParen, searchUrl: searchUrl, link: link, youtubeId: youtubeId
+    stripParen: stripParen, searchUrl: searchUrl, link: link, youtubeId: youtubeId,
+    luminance: luminance, applyTheme: applyTheme
   };
 })();
