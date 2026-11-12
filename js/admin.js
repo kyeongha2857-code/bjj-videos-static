@@ -16,6 +16,8 @@
   var focusTarget = null;    // 새로 추가한 기술 (그 줄의 이름 칸에 커서를 둔다)
   var persistTimer = null;
   var opts = { download: false };
+  var config = {};           // config.properties 내용
+  var AUTH_KEY = 'bjjAuth';  // 이 탭에서 로그인했다는 표시
 
   function $(id) { return document.getElementById(id); }
 
@@ -394,8 +396,8 @@
     ]));
 
     root.appendChild(card('색과 화면 모드', [
-      colorField('강조 색', 'accent', '점수, 영상이 지정된 기술의 테두리, 마우스를 올렸을 때 색입니다.'),
-      colorField('보조 색', 'mat', '작은 분류 이름, 구분선, 선택된 버튼 색입니다.'),
+      colorField('강조 색', 'accent', '작은 머리글, 점수, 영상이 지정된 기술, 마우스를 올렸을 때 색입니다.'),
+      colorField('보조 색', 'mat', '작은 분류 이름, 분류 바로가기, 선택된 버튼 색입니다.'),
       h('label', { class: 'field narrow' }, [h('span', { text: '화면 모드' }), themeSel]),
       h('p', { class: 'hint', text: '어두운 화면에서는 고른 색이 자동으로 조금 밝게 바뀝니다.' }),
       h('div', { class: 'actions' }, [
@@ -472,11 +474,11 @@
     return B.normalize(v);
   }
 
-  function downloadText(text) {
+  function downloadText(text, name) {
     var blob = new Blob([text], { type: 'text/javascript;charset=utf-8' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'data.js';
+    a.download = name || 'data.js';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -533,18 +535,18 @@
     var session = readJson('sessionStorage', GH_KEY);
     var saved = readJson('localStorage', GH_KEY) || session || {};
     var guess = guessRepo();
-    gh.owner.value = saved.owner || guess.owner;
-    gh.repo.value = saved.repo || guess.repo;
-    gh.branch.value = saved.branch || 'main';
-    gh.path.value = saved.path || 'data.js';
+    gh.owner.value = saved.owner || config['github.owner'] || guess.owner;
+    gh.repo.value = saved.repo || config['github.repo'] || guess.repo;
+    gh.branch.value = saved.branch || config['github.branch'] || 'main';
+    gh.path.value = saved.path || config['github.path'] || 'data.js';
     gh.token.value = saved.token || '';
     gh.remember.checked = !session || !!readJson('localStorage', GH_KEY);
     refreshGh();
   }
 
-  function ghUrl(c) {
+  function ghUrl(c, path) {
     return 'https://api.github.com/repos/' + encodeURIComponent(c.owner) + '/' + encodeURIComponent(c.repo) +
-      '/contents/' + c.path.split('/').map(encodeURIComponent).join('/');
+      '/contents/' + (path || c.path).split('/').map(encodeURIComponent).join('/');
   }
 
   function ghHeaders(c, extra) {
@@ -580,18 +582,38 @@
     return new TextDecoder('utf-8').decode(bytes);
   }
 
-  function getRemote(c) {
-    return fetch(ghUrl(c) + '?ref=' + encodeURIComponent(c.branch) + '&_=' + Date.now(), { headers: ghHeaders(c), cache: 'no-store' });
+  function getRemote(c, path) {
+    return fetch(ghUrl(c, path) + '?ref=' + encodeURIComponent(c.branch) + '&_=' + Date.now(), { headers: ghHeaders(c), cache: 'no-store' });
   }
 
   function setBusy(v) {
     busy = v;
-    ['save', 'pull', 'discard', 'gh-test'].forEach(function (id) { $(id).disabled = v; });
+    ['save', 'pull', 'discard', 'gh-test', 'pw-save', 'pw-clear'].forEach(function (id) { $(id).disabled = v; });
   }
 
   function clock() {
     var t = new Date();
     return String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
+  }
+
+  // 저장소의 파일 하나를 새 내용으로 커밋한다. 그 사이 파일이 바뀌어 충돌하면 한 번 다시 시도한다.
+  function putFile(c, path, text, message) {
+    function attempt(retry) {
+      return getRemote(c, path).then(function (res) {
+        if (res.status === 404) return null;          // 파일이 아직 없으면 새로 만든다
+        if (!res.ok) throw new Error(ghError(res));
+        return res.json();
+      }).then(function (remote) {
+        var body = { message: message, content: toBase64(text), branch: c.branch };
+        if (remote && remote.sha) body.sha = remote.sha;
+        return fetch(ghUrl(c, path), { method: 'PUT', headers: ghHeaders(c, { 'Content-Type': 'application/json' }), body: JSON.stringify(body) });
+      }).then(function (res) {
+        if ((res.status === 409 || res.status === 422) && retry) return attempt(false);
+        if (!res.ok) throw new Error(ghError(res));
+        return res;
+      });
+    }
+    return attempt(true);
   }
 
   // ---------- 저장 ----------
@@ -617,23 +639,7 @@
     setBusy(true);
     setStatus('저장하는 중...');
 
-    function attempt(retry) {
-      return getRemote(c).then(function (res) {
-        if (res.status === 404) return null;          // 파일이 아직 없으면 새로 만든다
-        if (!res.ok) throw new Error(ghError(res));
-        return res.json();
-      }).then(function (remote) {
-        var body = { message: '관리자 페이지에서 내용 수정', content: toBase64(text), branch: c.branch };
-        if (remote && remote.sha) body.sha = remote.sha;
-        return fetch(ghUrl(c), { method: 'PUT', headers: ghHeaders(c, { 'Content-Type': 'application/json' }), body: JSON.stringify(body) });
-      }).then(function (res) {
-        if ((res.status === 409 || res.status === 422) && retry) return attempt(false);
-        if (!res.ok) throw new Error(ghError(res));
-        return res;
-      });
-    }
-
-    attempt(true).then(function () {
+    putFile(c, c.path, text, '관리자 페이지에서 내용 수정').then(function () {
       state = B.normalize(out);
       dirty = false;
       persistNow();
@@ -780,20 +786,204 @@
     if ((e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === 's') { e.preventDefault(); save(); }
   });
 
-  // ---------- 시작 ----------
-  var savedOpts = readJson('localStorage', OPT_KEY);
-  if (savedOpts) opts.download = !!savedOpts.download;
-  $('opt-download').checked = opts.download;
-  initGh();
+  // ---------- config.properties (비밀번호, GitHub 기본값) ----------
+  var PROP_KEYS = ['admin.password', 'admin.password.salt', 'admin.password.hash',
+    'github.owner', 'github.repo', 'github.branch', 'github.path'];
 
-  var draft = readJson('localStorage', DRAFT_KEY);
-  var resumed = false;
-  if (draft && (Array.isArray(draft) || draft.dirty)) {
-    state = B.normalize(Array.isArray(draft) ? draft : draft.data);
-    dirty = true;
-    resumed = true;
+  function parseProps(text) {
+    var out = {};
+    String(text).split(/\r?\n/).forEach(function (line) {
+      line = line.trim();
+      if (!line || line.charAt(0) === '#' || line.charAt(0) === '!') return;
+      var i = line.search(/[=:]/);
+      if (i < 1) return;
+      out[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+    });
+    return out;
   }
-  renderAll();
-  if (resumed) setStatus('저장하지 않은 편집 내용을 이어서 불러왔습니다.', true);
-  else if (ghReady(ghConfig())) pull('auto');
+
+  function buildProps(cfg) {
+    function v(k) { return cfg[k] || ''; }
+    return [
+      '# 주짓수 영상 사이트 관리자 설정',
+      '# 관리자 페이지의 [저장 설정]에서 비밀번호를 바꾸면 이 파일이 자동으로 다시 만들어집니다.',
+      '# 주의: 이 파일은 누구나 볼 수 있습니다. GitHub 토큰은 절대 여기에 넣지 마세요.',
+      '',
+      '# 관리자 페이지 비밀번호 (암호화된 값). 관리자 페이지에서 정하면 아래 두 줄이 채워집니다.',
+      '# 두 줄을 모두 비우면 비밀번호 없이 열립니다.',
+      'admin.password.salt=' + v('admin.password.salt'),
+      'admin.password.hash=' + v('admin.password.hash'),
+      '',
+      '# 비밀번호를 글자 그대로 적어도 동작하지만, 저장소를 보는 사람 누구나 읽을 수 있어 권하지 않습니다.',
+      '# 위의 암호화된 값이 있으면 이 줄은 쓰이지 않습니다.',
+      'admin.password=' + v('admin.password'),
+      '',
+      '# GitHub 연결 기본값 (비워 두면 사이트 주소에서 자동으로 알아냅니다)',
+      'github.owner=' + v('github.owner'),
+      'github.repo=' + v('github.repo'),
+      'github.branch=' + (v('github.branch') || 'main'),
+      'github.path=' + (v('github.path') || 'data.js'),
+      ''
+    ].join('\n');
+  }
+
+  function loadConfig() {
+    return Promise.resolve().then(function () {
+      return fetch('config.properties?_=' + Date.now(), { cache: 'no-store' });
+    }).then(function (res) {
+      return res && res.ok ? res.text() : '';
+    }).then(parseProps).catch(function () { return {}; });
+  }
+
+  function toHex(bytes) {
+    return Array.prototype.map.call(bytes, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+  }
+  function fromHex(hexStr) {
+    var out = new Uint8Array(hexStr.length / 2);
+    for (var i = 0; i < out.length; i++) out[i] = parseInt(hexStr.substr(i * 2, 2), 16);
+    return out;
+  }
+
+  // 비밀번호를 그대로 저장하지 않고, 되돌릴 수 없는 값으로 바꿔서 저장한다 (PBKDF2)
+  function derive(password, saltHex) {
+    var subtle = window.crypto && window.crypto.subtle;
+    if (!subtle) return Promise.reject(new Error('이 브라우저에서는 비밀번호 기능을 쓸 수 없습니다. https 주소로 접속해 주세요.'));
+    return subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']).then(function (key) {
+      return subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: fromHex(saltHex), iterations: 150000 }, key, 256);
+    }).then(function (buf) { return toHex(new Uint8Array(buf)); });
+  }
+
+  function hasPassword() { return !!(config['admin.password.hash'] || config['admin.password']); }
+  function authMark() { return config['admin.password.hash'] || ('plain:' + config['admin.password']); }
+  function setAuth() { try { sessionStorage.setItem(AUTH_KEY, authMark()); } catch (e) {} }
+
+  function checkPassword(input) {
+    if (config['admin.password.hash']) {
+      return derive(input, config['admin.password.salt'] || '').then(function (h2) { return h2 === config['admin.password.hash']; });
+    }
+    return Promise.resolve(input === config['admin.password']);
+  }
+
+  function refreshPw() {
+    var on = hasPassword();
+    $('pw-state').textContent = on ? '사용 중' : '없음';
+    $('pw-state').className = 'badge ' + (on ? 'ok' : '');
+    $('pw-clear').hidden = !on;
+    $('lock').hidden = !on;
+  }
+
+  // 바뀐 설정을 config.properties로 저장한다 (GitHub 연결이 없으면 파일로 내려받는다)
+  function saveConfig(next, doneText) {
+    var msg = $('pw-msg');
+    function say(text, warn) { msg.textContent = text; msg.className = 'status' + (warn ? ' dirty' : ''); }
+    var c = ghConfig();
+    next['github.owner'] = c.owner;
+    next['github.repo'] = c.repo;
+    next['github.branch'] = c.branch;
+    next['github.path'] = c.path;
+    var text = buildProps(next);
+    function applied() {
+      config = next;
+      if (hasPassword()) setAuth(); else { try { sessionStorage.removeItem(AUTH_KEY); } catch (e) {} }
+      $('pw-new').value = '';
+      $('pw-new2').value = '';
+      refreshPw();
+    }
+    if (!ghReady(c)) {
+      downloadText(text, 'config.properties');
+      applied();
+      say('config.properties 파일을 내려받았습니다. 저장소 맨 위 폴더에 올려야 적용됩니다. (GitHub를 연결하면 자동으로 올라갑니다)', true);
+      return;
+    }
+    var dir = c.path.indexOf('/') > -1 ? c.path.slice(0, c.path.lastIndexOf('/') + 1) : '';
+    setBusy(true);
+    say('저장하는 중...');
+    putFile(c, dir + 'config.properties', text, '관리자 설정 변경').then(function () {
+      applied();
+      say(doneText + ' 1~2분 뒤부터 적용됩니다.');
+    }).catch(function (e) { say(errText(e), true); }).then(function () { setBusy(false); });
+  }
+
+  function copyConfig() {
+    var next = {};
+    PROP_KEYS.forEach(function (k) { next[k] = config[k] || ''; });
+    return next;
+  }
+
+  $('pw-save').addEventListener('click', function () {
+    var a = $('pw-new').value, b = $('pw-new2').value;
+    var msg = $('pw-msg');
+    function warn(t) { msg.textContent = t; msg.className = 'status dirty'; }
+    if (a.length < 8) { warn('비밀번호는 8자 이상으로 정해 주세요.'); return; }
+    if (a !== b) { warn('두 칸의 비밀번호가 서로 다릅니다.'); return; }
+    var salt = new Uint8Array(16);
+    window.crypto.getRandomValues(salt);
+    var saltHex = toHex(salt);
+    derive(a, saltHex).then(function (hash) {
+      var next = copyConfig();
+      next['admin.password.salt'] = saltHex;
+      next['admin.password.hash'] = hash;
+      next['admin.password'] = '';
+      saveConfig(next, '비밀번호를 저장했습니다.');
+    }).catch(function (e) { warn(e.message); });
+  });
+
+  $('pw-clear').addEventListener('click', function () {
+    if (!window.confirm('비밀번호를 없애면 누구나 이 관리자 페이지를 열 수 있습니다. 계속할까요?')) return;
+    var next = copyConfig();
+    next['admin.password.salt'] = '';
+    next['admin.password.hash'] = '';
+    next['admin.password'] = '';
+    saveConfig(next, '비밀번호를 없앴습니다.');
+  });
+
+  $('lock').addEventListener('click', function () {
+    try { sessionStorage.removeItem(AUTH_KEY); } catch (e) {}
+    location.reload();
+  });
+
+  $('login-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = $('login-msg');
+    msg.textContent = '확인하는 중...';
+    checkPassword($('login-pw').value).then(function (ok) {
+      if (!ok) { msg.textContent = '비밀번호가 맞지 않습니다.'; $('login-pw').select(); return; }
+      setAuth();
+      $('login').hidden = true;
+      start();
+    }).catch(function (err) { msg.textContent = err.message; });
+  });
+
+  // ---------- 시작 ----------
+  function start() {
+    $('app').hidden = false;
+    var savedOpts = readJson('localStorage', OPT_KEY);
+    if (savedOpts) opts.download = !!savedOpts.download;
+    $('opt-download').checked = opts.download;
+    initGh();
+    refreshPw();
+
+    var draft = readJson('localStorage', DRAFT_KEY);
+    var resumed = false;
+    if (draft && (Array.isArray(draft) || draft.dirty)) {
+      state = B.normalize(Array.isArray(draft) ? draft : draft.data);
+      dirty = true;
+      resumed = true;
+    }
+    renderAll();
+    if (resumed) setStatus('저장하지 않은 편집 내용을 이어서 불러왔습니다.', true);
+    else if (ghReady(ghConfig())) pull('auto');
+  }
+
+  loadConfig().then(function (cfg) {
+    config = cfg;
+    var authed = false;
+    try { authed = sessionStorage.getItem(AUTH_KEY) === authMark(); } catch (e) {}
+    if (hasPassword() && !authed) {
+      $('login').hidden = false;
+      $('login-pw').focus();
+    } else {
+      start();
+    }
+  });
 })();
