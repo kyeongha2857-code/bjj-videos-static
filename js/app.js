@@ -1,17 +1,20 @@
 (function () {
-  var data = Array.isArray(window.BJJ_DATA) ? window.BJJ_DATA : [];
+  'use strict';
+  var B = window.BJJ;
+  var data = B.normalize(window.BJJ_DATA);
 
-  // ?preview=1 이면 설정 페이지에서 편집 중인 초안(이 브라우저에 저장됨)을 보여준다
+  // ?preview=1 이면 관리자 페이지에서 편집 중인 내용(이 브라우저에 보관됨)을 보여준다
   if (/[?&]preview\b/.test(location.search)) {
     try {
       var draft = JSON.parse(localStorage.getItem('bjjDraft'));
-      if (Array.isArray(draft)) {
-        data = draft;
+      if (draft) {
+        data = B.normalize(draft.data || draft);
         document.getElementById('preview-banner').hidden = false;
       }
     } catch (e) {}
   }
 
+  var site = data.site;
   var lang = 'ko';
   try { if (localStorage.getItem('bjjLang') === 'en') lang = 'en'; } catch (e) {}
 
@@ -27,46 +30,47 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
-  function isHttp(u) { return /^https?:\/\//i.test(u || ''); }
-  function stripParen(s) { return String(s || '').replace(/\s*\(.*\)/, '').trim(); }
 
-  // 영상 주소가 있으면 그 영상으로, 없으면 유튜브 검색으로 연결
-  function link(it) {
-    if (isHttp(it.video)) return it.video;
-    var q = lang === 'ko'
-      ? stripParen(it.ko) + ' 주짓수'
-      : (it.en ? it.en : stripParen(it.ko)) + ' BJJ';
-    return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+  // 관리자 페이지에서 고친 사이트 문구를 화면에 반영
+  function applySite() {
+    document.title = site.title || document.title;
+    document.getElementById('site-eyebrow').textContent = site.eyebrow;
+    document.getElementById('site-title').textContent = site.title;
+    document.getElementById('site-lede').textContent = site.lede;
+    document.getElementById('site-footer').textContent = site.footer;
+    var box = document.getElementById('site-scores');
+    box.hidden = site.scores.length === 0;
+    box.innerHTML = site.scores.map(function (s) {
+      return '<div><b>' + esc(s.point) + '</b><span>' + esc(s.label) + '</span></div>';
+    }).join('');
   }
 
   function render() {
     var term = input.value.trim().toLowerCase();
     var html = '';
     var navHtml = '';
-    var total = 0;
 
-    data.forEach(function (sec) {
+    data.sections.forEach(function (sec) {
       var secHtml = '';
-      (sec.groups || []).forEach(function (g) {
-        var groupMatch = term && String(g.name || '').toLowerCase().indexOf(term) > -1;
-        var items = (g.items || []).filter(function (it) {
+      sec.groups.forEach(function (g) {
+        var groupMatch = term && g.name.toLowerCase().indexOf(term) > -1;
+        var items = g.items.filter(function (it) {
           return !term || groupMatch ||
-            String(it.ko || '').toLowerCase().indexOf(term) > -1 ||
-            String(it.en || '').toLowerCase().indexOf(term) > -1;
+            it.ko.toLowerCase().indexOf(term) > -1 || it.en.toLowerCase().indexOf(term) > -1;
         });
         if (!items.length) return;
-        total += items.length;
         secHtml += '<div class="row"><h3>' + esc(g.name) + '</h3><div>' +
           (g.note ? '<p class="note">' + esc(g.note) + '</p>' : '') +
           '<div class="pills">' + items.map(function (it) {
-            return '<a class="pill' + (isHttp(it.video) ? ' has-video' : '') + '" href="' + esc(link(it)) +
-              '" target="_blank" rel="noopener noreferrer">' + esc(it.ko) + '</a>';
+            return '<a class="pill' + (B.isHttp(it.video) ? ' has-video' : '') + '" href="' +
+              esc(B.link(it, lang, site)) + '" target="_blank" rel="noopener noreferrer">' + esc(it.ko) + '</a>';
           }).join('') + '</div></div></div>';
       });
       if (secHtml) {
-        html += '<section id="' + esc(sec.id) + '"><h2>' + esc(sec.title) + '</h2><p class="desc">' +
-          esc(sec.desc) + '</p><div class="rows">' + secHtml + '</div></section>';
-        navHtml += '<a href="#' + esc(sec.id) + '">' + esc(stripParen(sec.title)) + '</a>';
+        html += '<section id="' + esc(sec.id) + '"><h2>' + esc(sec.title) + '</h2>' +
+          (sec.desc ? '<p class="desc">' + esc(sec.desc) + '</p>' : '') +
+          '<div class="rows">' + secHtml + '</div></section>';
+        navHtml += '<a href="#' + esc(sec.id) + '">' + esc(B.stripParen(sec.title)) + '</a>';
       }
     });
 
@@ -95,5 +99,6 @@
 
   btnKo.setAttribute('aria-pressed', String(lang === 'ko'));
   btnEn.setAttribute('aria-pressed', String(lang === 'en'));
+  applySite();
   render();
 })();

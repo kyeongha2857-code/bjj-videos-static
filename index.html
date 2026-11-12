@@ -11,15 +11,11 @@
 <div id="scroll">
 <div class="wrap">
 <header>
-  <div class="eyebrow">노량진 주짓수락 · White Belt</div>
-  <h1>화이트벨트 기술 영상</h1>
-  <p class="lede">기술 이름을 누르면 해당 기술 영상으로 이동합니다. 영상이 지정되지 않은 기술은 유튜브 검색 결과가 새 탭으로 열립니다.</p>
-  <div class="preview" id="preview-banner" hidden>설정 페이지에서 편집 중인 초안을 미리 보는 중입니다. 아직 반영된 내용이 아닙니다.</div>
-  <div class="score" aria-label="기본 점수 체계">
-    <div><b>2점</b><span>테이크다운 · 스윕 · 니온벨리</span></div>
-    <div><b>3점</b><span>가드패스</span></div>
-    <div><b>4점</b><span>마운트 · 백마운트</span></div>
-  </div>
+  <div class="eyebrow" id="site-eyebrow">노량진 주짓수락 · White Belt</div>
+  <h1 id="site-title">화이트벨트 기술 영상</h1>
+  <p class="lede" id="site-lede">기술 이름을 누르면 해당 기술 영상으로 이동합니다.</p>
+  <div class="preview" id="preview-banner" hidden>관리자 페이지에서 편집 중인 내용을 미리 보는 중입니다. 아직 반영된 내용이 아닙니다.</div>
+  <div class="score" id="site-scores" aria-label="기본 점수 체계"></div>
 </header>
 
 <div class="bar">
@@ -36,12 +32,13 @@
 <main id="main"></main>
 
 <footer>
-  <p>빨간 테두리 기술은 지정된 영상으로 바로 연결되고, 나머지는 유튜브 검색 결과로 연결됩니다. 한국어 검색은 기술명에 "주짓수"를, English 검색은 영어 기술명에 "BJJ"를 붙여 검색합니다. 자료 출처: 노량진 주짓수락 화이트벨트 가이드라인.</p>
-  <p><a href="admin.html">설정</a></p>
+  <p id="site-footer"></p>
+  <p><a href="admin.html">관리자</a></p>
 </footer>
 </div>
 </div>
 <script src="data.js"></script>
+<script src="js/shared.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

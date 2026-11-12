@@ -109,3 +109,7 @@ footer a { color: var(--muted); }
 
 /* 설정 페이지의 초안을 미리 볼 때 나오는 안내 */
 .preview { margin-top: 16px; padding: 8px 12px; font-size: 13px; border-left: 3px solid var(--accent); background: var(--surface); }
+
+/* 점수표: 칸 수가 바뀌어도 맞게 나뉜다 */
+.score { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 1px; background: var(--line); }
+.score div { border-left: 0; background: var(--surface); }
