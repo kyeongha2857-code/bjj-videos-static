@@ -1179,6 +1179,16 @@
     saveConfig(next, '비밀번호를 없앴습니다.');
   });
 
+  // 더보기 메뉴 (작은 화면에서만 보임)
+  (function () {
+    var box = $('more'), b = $('more-btn');
+    function set(on) { box.classList.toggle('open', on); b.setAttribute('aria-expanded', on ? 'true' : 'false'); }
+    b.addEventListener('click', function (e) { e.stopPropagation(); set(!box.classList.contains('open')); });
+    document.addEventListener('click', function (e) { if (!box.contains(e.target)) set(false); });
+    box.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.menu .btn')) set(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+  })();
+
   $('lock').addEventListener('click', function () {
     try { sessionStorage.removeItem(AUTH_KEY); } catch (e) {}
     location.reload();
