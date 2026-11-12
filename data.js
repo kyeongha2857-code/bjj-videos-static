@@ -48,7 +48,7 @@ window.BJJ_DATA = {
       {
        "ko": "새우빼기",
        "en": "hip escape shrimp",
-       "video": "https://www.naver.com"
+       "video": ""
       },
       {
        "ko": "브릿지",
