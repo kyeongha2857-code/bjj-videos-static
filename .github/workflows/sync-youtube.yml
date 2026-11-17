@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '17 22 * * *'   # 매일 오전 7시 17분 (한국 시간)
   workflow_dispatch:         # Actions 탭에서 수동 실행도 가능
+    inputs:
+      reprocess:
+        description: '이미 처리한 영상도 다시 처리 (지운 링크를 다시 채울 때 체크)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -22,6 +27,7 @@ jobs:
           node-version: 20
       - name: 새 영상 확인 및 data.js 갱신
         env:
+          FORCE_REPROCESS: ${{ inputs.reprocess }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
         run: node sync/sync.mjs | tee "$GITHUB_STEP_SUMMARY"

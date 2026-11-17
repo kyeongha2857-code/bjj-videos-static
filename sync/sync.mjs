@@ -132,13 +132,15 @@ state.videos ||= {}; state.auto ||= {};
 const found = [];
 for (const ch of channels) found.push(...parseFeed(await fetchFeed(ch.channelId), ch.name));
 // 관리자가 overrides 에 적어 둔 영상(피드에 안 나오는 예전 영상 포함)도 함께 처리
+const FORCE = process.env.FORCE_REPROCESS === 'true'; // 이미 처리한 영상도 다시 처리 (지운 링크를 다시 채울 때)
 for (const id of Object.keys(overrides)) {
-  if (id.startsWith('_') || found.some((v) => v.id === id) || state.videos[id]) continue;
-  found.push({ id, title: overrides[id]._title || '', published: null, channel: channels[0]?.name || '' });
+  if (id.startsWith('_') || found.some((v) => v.id === id)) continue;
+  if (state.videos[id] && !FORCE) continue;
+  found.push({ id, title: state.videos[id]?.title || '', published: state.videos[id]?.published || null, channel: channels[0]?.name || '' });
 }
 
 const log = [];
-const fresh = found.filter((v) => !state.videos[v.id]).sort((a, b) => (a.published || '').localeCompare(b.published || ''));
+const fresh = found.filter((v) => FORCE || !state.videos[v.id]).sort((a, b) => (a.published || '').localeCompare(b.published || ''));
 for (const v of fresh) {
   let keys, status, series = null;
   if (Array.isArray(overrides[v.id])) {
