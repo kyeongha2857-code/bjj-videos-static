@@ -63,7 +63,7 @@ window.BJJ_DATA = {
       {
        "ko": "테크니컬 스탠드업",
        "en": "technical stand up",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=pCGG2BZfDwA"
       },
       {
        "ko": "사이드롤",
@@ -304,7 +304,7 @@ window.BJJ_DATA = {
       {
        "ko": "사이드 이스케이프",
        "en": "side control escape hip escape",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=hNDZ-uk2-0c"
       },
       {
        "ko": "무릎 넣고 가드 전환",
@@ -364,47 +364,47 @@ window.BJJ_DATA = {
       {
        "ko": "니 슬라이드",
        "en": "knee slide pass",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=jf-Vtt145nI"
       },
       {
        "ko": "엑스 패스",
        "en": "x pass",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=jf-Vtt145nI"
       },
       {
        "ko": "스매시 패스",
        "en": "smash pass",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=RjagC_jw-AY"
       },
       {
        "ko": "레그 드래그 패스",
        "en": "leg drag pass",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=nxUjn7gsCzw"
       },
       {
        "ko": "발목 잡고 레그 드래그",
        "en": "leg drag pass ankle grip",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=nxUjn7gsCzw"
       },
       {
        "ko": "정강이 눌러 레그 드래그",
        "en": "leg drag pass shin",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=nxUjn7gsCzw"
       },
       {
        "ko": "토레안도",
        "en": "toreando pass",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=GfBchg9_x3Q"
       },
       {
        "ko": "언더 오버",
        "en": "over under pass",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=xElHA2cKFfA"
       },
       {
        "ko": "더블 언더",
        "en": "double under pass",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=xElHA2cKFfA"
       },
       {
        "ko": "레그위브 (크레이지독)",
@@ -823,7 +823,7 @@ window.BJJ_DATA = {
       {
        "ko": "암바",
        "en": "closed guard armbar",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=fX7zzpOpbkY"
       },
       {
        "ko": "암락",
@@ -844,12 +844,12 @@ window.BJJ_DATA = {
       {
        "ko": "트라이앵글",
        "en": "triangle choke",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=wiZroWfXiJ4"
       },
       {
        "ko": "오모플라타",
        "en": "omoplata",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=XsiKrnGEjdc"
       }
      ]
     },
@@ -892,12 +892,12 @@ window.BJJ_DATA = {
       {
        "ko": "키락",
        "en": "americana keylock",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=aU0_yMaT144"
       },
       {
        "ko": "기무라",
        "en": "side control kimura",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=aU0_yMaT144"
       },
       {
        "ko": "스트레이트 암바",
@@ -934,12 +934,12 @@ window.BJJ_DATA = {
       {
        "ko": "깃 초크",
        "en": "back control collar choke",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=r5fhAvt91Tw"
       },
       {
        "ko": "애로우 초크",
        "en": "arrow choke",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=r5fhAvt91Tw"
       }
      ]
     },
@@ -950,7 +950,7 @@ window.BJJ_DATA = {
       {
        "ko": "앵클 락",
        "en": "ankle lock",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=RBS1gdodjPY"
       },
       {
        "ko": "에스티마 락",

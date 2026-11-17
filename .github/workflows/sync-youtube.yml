@@ -1,0 +1,34 @@
+name: 유튜브 영상 동기화
+
+on:
+  schedule:
+    - cron: '17 22 * * *'   # 매일 오전 7시 17분 (한국 시간)
+  workflow_dispatch:         # Actions 탭에서 수동 실행도 가능
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-youtube
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 새 영상 확인 및 data.js 갱신
+        run: node sync/sync.mjs | tee "$GITHUB_STEP_SUMMARY"
+      - name: 변경이 있으면 커밋
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data.js sync/videos.json
+            git commit -m "유튜브 새 영상 자동 동기화"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push
+          fi
