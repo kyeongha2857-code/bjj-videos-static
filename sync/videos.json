@@ -8,7 +8,9 @@
    "items": [
     "terms/바닥에서 움직이기/새우빼기"
    ],
-   "applied": []
+   "applied": [
+    "terms/바닥에서 움직이기/새우빼기"
+   ]
   },
   "EXJPVUuBphk": {
    "title": "상대가 옆에 가까이 붙었다면? 사이드싯업 | 기본드릴 02",
@@ -18,7 +20,9 @@
    "items": [
     "terms/바닥에서 움직이기/사이드 싯업"
    ],
-   "applied": []
+   "applied": [
+    "terms/바닥에서 움직이기/사이드 싯업"
+   ]
   },
   "hNDZ-uk2-0c": {
    "title": "사이드에 잡혔을 때, 브릿지에서 새우빼기까지 | 기본드릴 03",
@@ -282,6 +286,14 @@
   },
   "sub/다리 기술/앵클 락": {
    "videoId": "RBS1gdodjPY",
+   "score": 2
+  },
+  "terms/바닥에서 움직이기/새우빼기": {
+   "videoId": "B3WE8ACvU54",
+   "score": 2
+  },
+  "terms/바닥에서 움직이기/사이드 싯업": {
+   "videoId": "EXJPVUuBphk",
    "score": 2
   }
  }
