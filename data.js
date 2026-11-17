@@ -31,7 +31,7 @@ window.BJJ_DATA = {
   "footer": "파란색으로 표시된 기술은 지정된 영상으로 바로 연결되고, 나머지는 유튜브 검색 결과로 연결됩니다. 자료 출처: 노량진 주짓수락 화이트벨트 가이드라인.",
   "showAdminLink": true,
   "adminLinkText": "관리자",
-  "accent": "#f63131",
+  "accent": "#3182f6",
   "mat": "#4e5968",
   "theme": "auto"
  },
