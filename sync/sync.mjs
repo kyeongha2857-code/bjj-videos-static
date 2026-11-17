@@ -171,7 +171,13 @@ for (const v of all) {
   }
   const score = keys.length === 1 ? 2 : 1;
   const applied = [];
+  // 이름이 같은 기술(띄어쓰기만 다른 것 포함)이 다른 분류에도 있으면 같은 영상을 함께 연결한다. 예: 더블 언더 / 더블언더
+  const targets = new Set(keys);
   for (const k of keys) {
+    const nm = norm(byKey.get(k).ref.ko);
+    for (const it of items) if (norm(it.ref.ko) === nm) targets.add(it.key);
+  }
+  for (const k of targets) {
     const it = byKey.get(k).ref;
     const prev = state.auto[k];
     const mine = prev && it.video === watchUrl(prev.videoId);
@@ -184,7 +190,7 @@ for (const v of all) {
   state.videos[v.id] = { title: v.title, published: v.published, series, status, items: keys, applied: known && !applied.length ? known.applied : applied };
   if (!known) newCount++;
   if (!known || applied.length)
-    log.push(`${known ? '채움' : '새 영상'} [${status}] ${v.title}\n         → ${applied.join(', ') || '(채울 기술 없음)'}${keys.length > applied.length ? `  [이미 영상이 있어 유지: ${keys.length - applied.length}개]` : ''}`);
+    log.push(`${known ? '채움' : '새 영상'} [${status}] ${v.title}\n         → ${applied.join(', ') || '(채울 기술 없음)'}${targets.size > applied.length ? `  [이미 영상이 있어 유지: ${targets.size - applied.length}개]` : ''}`);
 }
 
 if (JSON.stringify(data) !== dataBefore) writeData();

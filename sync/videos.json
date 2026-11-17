@@ -102,8 +102,7 @@
     "pass/패스 기술/더블 언더"
    ],
    "applied": [
-    "pass/패스 기술/언더 오버",
-    "pass/패스 기술/더블 언더"
+    "terms/그립 · 훅/더블언더"
    ]
   },
   "RjagC_jw-AY": {
@@ -164,8 +163,7 @@
     "sub/사이드 포지션/기무라"
    ],
    "applied": [
-    "sub/사이드 포지션/키락",
-    "sub/사이드 포지션/기무라"
+    "sub/하프 가드/기무라"
    ]
   },
   "Nwqqi0-GIVM": {
@@ -295,6 +293,14 @@
   "terms/바닥에서 움직이기/사이드 싯업": {
    "videoId": "EXJPVUuBphk",
    "score": 2
+  },
+  "terms/그립 · 훅/더블언더": {
+   "videoId": "xElHA2cKFfA",
+   "score": 1
+  },
+  "sub/하프 가드/기무라": {
+   "videoId": "aU0_yMaT144",
+   "score": 1
   }
  }
 }

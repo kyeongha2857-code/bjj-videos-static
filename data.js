@@ -104,7 +104,7 @@ window.BJJ_DATA = {
       {
        "ko": "더블언더",
        "en": "double under",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=xElHA2cKFfA"
       },
       {
        "ko": "시트 벨트",
@@ -860,7 +860,7 @@ window.BJJ_DATA = {
       {
        "ko": "기무라",
        "en": "half guard kimura",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=aU0_yMaT144"
       },
       {
        "ko": "베이스볼 초크",
