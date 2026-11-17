@@ -21,6 +21,9 @@ jobs:
         with:
           node-version: 20
       - name: 새 영상 확인 및 data.js 갱신
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
         run: node sync/sync.mjs | tee "$GITHUB_STEP_SUMMARY"
       - name: 변경이 있으면 커밋
         run: |

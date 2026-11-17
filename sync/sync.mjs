@@ -46,7 +46,8 @@ function parseFeed(xml, channelName) {
     const id = (m[1].match(/<yt:videoId>([^<]+)</) || [])[1];
     const title = (m[1].match(/<title>([^<]*)</) || [])[1];
     const published = (m[1].match(/<published>([^<]+)</) || [])[1] || null;
-    if (id && title) out.push({ id, title: unesc(title), published, channel: channelName });
+    const desc = (m[1].match(/<media:description>([\s\S]*?)<\/media:description>/) || [])[1] || '';
+    if (id && title) out.push({ id, title: unesc(title), desc: unesc(desc), published, channel: channelName });
   }
   return out;
 }
@@ -88,6 +89,40 @@ function matchTitle(title) {
   return { keys, ambiguous, series: series ? `${series[1]} ${series[2]}` : null };
 }
 
+
+// ---------- Gemini 보완 (GEMINI_API_KEY 가 있을 때만, 규칙으로 못 찾은 영상에만 사용) ----------
+const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+async function askGemini(video) {
+  const list = items.filter((i) => !SKIP_SECTIONS.has(i.sec)).map((i) => i.key);
+  const prompt = [
+    '다음은 주짓수 기술 영상의 제목과 설명입니다. 아래 "기술 목록" 중에서 이 영상이 직접 가르치는 기술만 골라 주세요.',
+    '- 목록에 있는 값을 글자 그대로 사용하고, 목록에 없는 기술이나 단순히 언급만 된 포지션은 넣지 마세요.',
+    '- 해당하는 기술이 없으면 빈 배열을 주세요.',
+    '- 같은 이름이 여러 소분류에 있으면 영상 내용에 가장 맞는 하나만 고르세요.',
+    '- 반드시 {"items": ["섹션/소분류/기술명", ...]} 형태의 JSON만 답하세요.',
+    '',
+    `제목: ${video.title}`,
+    `설명: ${(video.desc || '').slice(0, 600)}`,
+    '',
+    '기술 목록:',
+    ...list,
+  ].join('\n');
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_KEY },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json', temperature: 0 },
+    }),
+  });
+  if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
+  const j = await res.json();
+  const text = j.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+  const arr = JSON.parse(text).items;
+  return Array.isArray(arr) ? arr.filter((k) => byKey.has(k)) : []; // 목록에 없는 값은 버림
+}
+
 // ---------- 실행 ----------
 const channels = readJson('sync/channels.json', []);
 const overrides = readJson('sync/overrides.json', {});
@@ -113,6 +148,14 @@ for (const v of fresh) {
     const m = matchTitle(v.title);
     keys = m.keys; series = m.series;
     status = keys.length === 0 ? 'review' : m.ambiguous ? 'review' : 'ok';
+    if (status === 'review' && GEMINI_KEY) {
+      try {
+        const ai = await askGemini(v);
+        if (ai.length) { keys = [...new Set([...keys, ...ai])]; status = 'ai'; }
+      } catch (e) {
+        console.warn(`Gemini 보완 실패(규칙 매칭 결과만 사용): ${e.message}`);
+      }
+    }
   }
   const score = keys.length === 1 ? 2 : 1;
   const applied = [];
