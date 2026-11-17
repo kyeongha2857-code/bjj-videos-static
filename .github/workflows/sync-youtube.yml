@@ -2,7 +2,7 @@ name: 유튜브 영상 동기화
 
 on:
   schedule:
-    - cron: '0 * * * *'       # 매시 정각 (UTC 기준이라 한국 시간으로도 매시 정각)
+    - cron: '0,30 * * * *'    # 30분마다 (매시 정각과 30분, UTC 기준이라 한국 시간과 같음)
   workflow_dispatch:         # Actions 탭에서 수동 실행도 가능
 
 permissions:
