@@ -161,4 +161,9 @@
 
   applySite();
   render();
+  // 주소에 #분류 가 붙어 있으면 (화면이 그려진 뒤) 그 분류로 이동
+  if (location.hash.length > 1) {
+    var target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (target && target.tagName === 'SECTION') target.scrollIntoView();
+  }
 })();
