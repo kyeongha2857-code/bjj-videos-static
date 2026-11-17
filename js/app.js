@@ -89,11 +89,44 @@
     main.innerHTML = html || '<p class="empty">' + esc(site.emptyText) + '</p>';
     nav.innerHTML = navHtml;
     syncBar();
+    lastSpy = '';
+    spy();
   }
 
   function syncBar() {
     document.documentElement.style.setProperty('--bar-h', bar.offsetHeight + 'px');
   }
+
+  // 스크롤하면 지금 보고 있는 분류를 위 메뉴에서 파랗게 표시
+  var scroller = document.getElementById('scroll');
+  var lastSpy = '';
+  var spyQueued = false;
+  function spy() {
+    spyQueued = false;
+    var secs = main.querySelectorAll('section');
+    if (!secs.length) return;
+    var line = scroller.getBoundingClientRect().top + bar.offsetHeight + 24;
+    var cur = secs[0].id;
+    for (var i = 0; i < secs.length; i++) {
+      if (secs[i].getBoundingClientRect().top <= line) cur = secs[i].id;
+    }
+    if (cur === lastSpy) return;
+    lastSpy = cur;
+    var links = nav.querySelectorAll('a');
+    for (var j = 0; j < links.length; j++) {
+      var on = links[j].getAttribute('href') === '#' + cur;
+      if (on) {
+        links[j].setAttribute('aria-current', 'true');
+        var a = links[j].getBoundingClientRect(), n = nav.getBoundingClientRect();
+        nav.scrollLeft += (a.left - n.left) - (nav.clientWidth - a.width) / 2;
+      } else {
+        links[j].removeAttribute('aria-current');
+      }
+    }
+  }
+  scroller.addEventListener('scroll', function () {
+    if (!spyQueued) { spyQueued = true; requestAnimationFrame(spy); }
+  }, { passive: true });
 
   function setLang(l) {
     lang = l;

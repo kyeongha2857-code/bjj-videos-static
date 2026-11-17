@@ -187,8 +187,8 @@
         field('설명 (선택)', sec.desc, function (v) { sec.desc = v; })
       ]));
       body.appendChild(h('div', { class: 'actions' }, [
-        btn('↑ 위로', 'sm', function () { move(state.sections, si, -1); }),
-        btn('↓ 아래로', 'sm', function () { move(state.sections, si, 1); }),
+        btn('위로', 'sm', function () { move(state.sections, si, -1); }),
+        btn('아래로', 'sm', function () { move(state.sections, si, 1); }),
         btn('큰 분류 삭제', 'sm danger', function () { removeAt(state.sections, si, '"' + (sec.title || '큰 분류') + '" 큰 분류를'); })
       ]));
     }
@@ -219,8 +219,8 @@
         field('안내 글 (선택, 공개 페이지에 함께 보임)', g.note, function (v) { g.note = v; }, true)
       ]));
       box.appendChild(h('div', { class: 'actions' }, [
-        btn('↑', 'sm', function () { move(sec.groups, gi, -1); }, '작은 분류를 위로'),
-        btn('↓', 'sm', function () { move(sec.groups, gi, 1); }, '작은 분류를 아래로'),
+        btn('위로', 'sm', function () { move(sec.groups, gi, -1); }, '작은 분류를 위로'),
+        btn('아래로', 'sm', function () { move(sec.groups, gi, 1); }, '작은 분류를 아래로'),
         btn('작은 분류 삭제', 'sm danger', function () { removeAt(sec.groups, gi, '"' + (g.name || '작은 분류') + '" 작은 분류를'); })
       ]));
     }
@@ -287,9 +287,9 @@
       thumb, ko, video, en,
       h('div', { class: 'ops' }, [
         find,
-        f ? null : btn('↑', 'sm', function () { move(g.items, ii, -1); }, '위로'),
-        f ? null : btn('↓', 'sm', function () { move(g.items, ii, 1); }, '아래로'),
-        btn('✕', 'sm danger', function () { removeAt(g.items, ii, '"' + (it.ko || '기술') + '"을(를)'); }, '삭제')
+        f ? null : btn('위로', 'sm', function () { move(g.items, ii, -1); }, '위로'),
+        f ? null : btn('아래로', 'sm', function () { move(g.items, ii, 1); }, '아래로'),
+        btn('삭제', 'sm danger', function () { removeAt(g.items, ii, '"' + (it.ko || '기술') + '"을(를)'); }, '삭제')
       ])
     ]);
   }
@@ -332,7 +332,7 @@
   function faviconBlock(s) {
     var prev = h('img', { class: 'favprev', alt: '파비콘 미리보기', width: '32', height: '32' });
     var input = textInput(s.favicon && s.favicon.indexOf('data:') === 0 ? '' : s.favicon,
-      '이모지(예: 🥋) 또는 이미지 주소', function (v) { s.favicon = v; paint(); });
+      '글자 한 개 또는 이미지 주소', function (v) { s.favicon = v; paint(); });
     var note = h('span', { class: 'status' });
     var file = h('input', { type: 'file', accept: 'image/*', hidden: 'hidden' });
     function paint() {
@@ -381,7 +381,7 @@
       scoreBox.appendChild(h('div', { class: 'scorerow' }, [
         textInput(sc.point, '점수 (예: 2점)', function (v) { sc.point = v; }),
         textInput(sc.label, '내용 (예: 테이크다운 · 스윕)', function (v) { sc.label = v; }),
-        btn('✕', 'sm danger', function () { removeAt(s.scores, i, '점수 칸을'); }, '삭제')
+        btn('삭제', 'sm danger', function () { removeAt(s.scores, i, '점수 칸을'); }, '삭제')
       ]));
     });
 
