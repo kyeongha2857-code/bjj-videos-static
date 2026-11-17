@@ -6,8 +6,8 @@
 <meta name="robots" content="noindex,nofollow">
 <title>주짓수 영상 관리자</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="css/style.css?v=20261117f">
-<link rel="stylesheet" href="css/admin.css?v=20261117f">
+<link rel="stylesheet" href="css/style.css?v=20261117g">
+<link rel="stylesheet" href="css/admin.css?v=20261117g">
 </head>
 <body class="admin">
 <div id="scroll">
@@ -34,6 +34,7 @@
       <div class="more" id="more">
         <button class="btn more-btn" id="more-btn" type="button" aria-expanded="false" aria-controls="more-menu" aria-label="더보기 메뉴">메뉴</button>
         <div class="menu" id="more-menu">
+          <button class="btn" id="sync-videos" type="button">영상 동기화</button>
           <button class="btn" id="undo" type="button" disabled>실행 취소</button>
           <button class="btn" id="discard" type="button">변경 버리기</button>
           <a class="btn" href="./?preview=1" target="_blank" rel="noopener">미리보기</a>
@@ -130,7 +131,7 @@
         <ol class="howto">
           <li>GitHub 오른쪽 위 프로필 &gt; <b>Settings</b> &gt; <b>Developer settings</b> &gt; <b>Personal access tokens</b> &gt; <b>Fine-grained tokens</b> &gt; <b>Generate new token</b></li>
           <li><b>Repository access</b>는 <b>Only select repositories</b>로 이 저장소만 고르세요.</li>
-          <li><b>Permissions</b> &gt; <b>Contents</b>를 <b>Read and write</b>로 바꾸세요. 다른 권한은 필요 없습니다.</li>
+          <li><b>Permissions</b> &gt; <b>Contents</b>를 <b>Read and write</b>로 바꾸세요. 메뉴의 [영상 동기화] 버튼도 쓰려면 <b>Actions</b>도 <b>Read and write</b>로 바꿉니다. 다른 권한은 필요 없습니다.</li>
           <li>만료일을 정해 만든 뒤, 한 번만 보이는 토큰을 위 [토큰을 파일로 만들기 / 직접 입력]에 붙여넣고 [이 토큰을 PC 파일로 저장]을 누르세요. 저장이 끝나면 [연결 확인]을 눌러 보세요.</li>
         </ol>
         <p class="hint">토큰은 이 PC의 파일에만 있고 GitHub 외에는 어디로도 전송되지 않습니다. 이 저장소에 쓸 수 있는 권한이라 남에게 알려주지 마세요.</p>
@@ -149,8 +150,8 @@
   </div>
 </div>
 </div>
-<script src="data.js?v=20261117f"></script>
-<script src="js/shared.js?v=20261117f"></script>
-<script src="js/admin.js?v=20261117f"></script>
+<script src="data.js?v=20261117g"></script>
+<script src="js/shared.js?v=20261117g"></script>
+<script src="js/admin.js?v=20261117g"></script>
 </body>
 </html>

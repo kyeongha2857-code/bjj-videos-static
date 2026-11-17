@@ -796,7 +796,7 @@
 
   function setBusy(v) {
     busy = v;
-    ['save', 'pull', 'discard', 'gh-test', 'pw-save', 'pw-clear'].forEach(function (id) { $(id).disabled = v; });
+    ['save', 'pull', 'discard', 'gh-test', 'pw-save', 'pw-clear', 'sync-videos'].forEach(function (id) { $(id).disabled = v; });
   }
 
   function clock() {
@@ -950,6 +950,84 @@
     }).catch(function (e) { say(errText(e), true); }).then(function () { setBusy(false); });
   }
 
+  // ---------- 영상 동기화: GitHub Actions 의 "유튜브 영상 동기화" 를 바로 실행 ----------
+  var SYNC_WORKFLOW = 'sync-youtube.yml';
+
+  function actionsUrl(c, tail) {
+    return 'https://api.github.com/repos/' + encodeURIComponent(c.owner) + '/' + encodeURIComponent(c.repo) +
+      '/actions/workflows/' + SYNC_WORKFLOW + tail;
+  }
+
+  function actionsError(res) {
+    if (res.status === 401) return ghError(res);
+    if (res.status === 403 || res.status === 404) {
+      return '이 토큰으로는 동기화를 실행할 수 없습니다. 토큰의 Actions 권한을 Read and write로 바꾸거나, GitHub 저장소의 Actions 탭에서 직접 실행해 주세요.';
+    }
+    return 'GitHub 요청이 실패했습니다. (' + res.status + ')';
+  }
+
+  // 방금 시작한 실행이 끝날 때까지 기다린다 (최대 약 3분). 실행 기록을 읽을 수 없으면 { unknown: true }
+  function waitRun(c, lastId, n) {
+    return new Promise(function (r) { setTimeout(r, 5000); }).then(function () {
+      return fetch(actionsUrl(c, '/runs?event=workflow_dispatch&per_page=5&_=' + Date.now()), { headers: ghHeaders(c), cache: 'no-store' });
+    }).then(function (res) {
+      if (!res.ok) return { unknown: true };
+      return res.json().then(function (j) {
+        var run = (j.workflow_runs || []).filter(function (x) { return x.id > lastId; })[0];
+        if (run && run.status === 'completed') return { run: run };
+        if (n >= 36) return { timeout: true };
+        setStatus('동기화 중입니다... (' + (run ? '실행 중' : '대기 중') + ')');
+        return waitRun(c, lastId, n + 1);
+      });
+    });
+  }
+
+  function syncVideos() {
+    if (busy) return;
+    var c = ghConfig();
+    if (!ghReady(c)) {
+      showTab('save');
+      setStatus('먼저 GitHub 연결 정보(저장소와 토큰)를 입력해 주세요.', true);
+      return;
+    }
+    setBusy(true);
+    setStatus('동기화를 시작하는 중...');
+    var lastId = null;
+    var c2;
+    ensureToken(true).then(function () {
+      c2 = ghConfig();
+      if (!c2.token) throw new Error(tokenError || '토큰이 없습니다. [저장 설정]에서 토큰 파일을 연결해 주세요.');
+      // 이미 있던 실행 기록의 마지막 번호를 기억해 두고, 그보다 새 실행만 따라간다
+      return fetch(actionsUrl(c2, '/runs?event=workflow_dispatch&per_page=1&_=' + Date.now()), { headers: ghHeaders(c2), cache: 'no-store' });
+    }).then(function (res) {
+      if (!res.ok) throw new Error(actionsError(res));
+      return res.json();
+    }).then(function (j) {
+      lastId = (j.workflow_runs && j.workflow_runs[0]) ? j.workflow_runs[0].id : 0;
+      return fetch(actionsUrl(c2, '/dispatches'), {
+        method: 'POST', headers: ghHeaders(c2, { 'Content-Type': 'application/json' }), body: JSON.stringify({ ref: c2.branch })
+      });
+    }).then(function (res) {
+      if (!res.ok) throw new Error(actionsError(res));
+      setStatus('동기화를 시작했습니다. 끝날 때까지 기다리는 중... (보통 1분 안팎)');
+      return waitRun(c2, lastId, 0);
+    }).then(function (result) {
+      setBusy(false);
+      if (result.timeout || result.unknown) {
+        setStatus('동기화를 시작했습니다. 아직 끝나지 않았거나 결과를 확인할 수 없습니다. 잠시 뒤 메뉴의 [GitHub의 최신 내용 불러오기]로 확인해 주세요.');
+      } else if (result.run.conclusion !== 'success') {
+        setStatus('동기화가 실패했습니다. GitHub 저장소의 Actions 탭에서 로그를 확인해 주세요.', true);
+      } else if (dirty) {
+        setStatus('동기화를 마쳤습니다. 저장하지 않은 편집이 있어 화면은 그대로 두었습니다. 저장한 뒤 [영상 동기화]를 한 번 더 누르면 영상이 다시 채워집니다.');
+      } else {
+        pull('manual');   // 저장소의 최신 내용을 화면에 반영
+      }
+    }).catch(function (e) {
+      setBusy(false);
+      setStatus(errText(e), true);
+    });
+  }
+
   // ---------- 탭 ----------
   function showTab(name) {
     ['list', 'site', 'save'].forEach(function (t) { $('tab-' + t).hidden = t !== name; });
@@ -964,6 +1042,7 @@
   });
   $('save').addEventListener('click', save);
   $('undo').addEventListener('click', undo);
+  $('sync-videos').addEventListener('click', syncVideos);
   $('discard').addEventListener('click', discard);
   $('pull').addEventListener('click', function () { pull('manual'); });
   $('download').addEventListener('click', function () {
