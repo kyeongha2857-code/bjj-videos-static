@@ -47,6 +47,7 @@ body {
   background: var(--bg); color: var(--ink);
   font-family: var(--font-body); font-size: 16px; line-height: 1.6;
   letter-spacing: -0.01em;
+  word-break: keep-all; overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
 }
 #scroll {
@@ -132,9 +133,12 @@ footer a { color: var(--muted); }
   main section { padding: 22px 18px 8px; border-radius: 20px; }
   .row { grid-template-columns: 1fr; padding: 16px 0; }
   .row h3 { padding-top: 0; }
-  .score { gap: 8px; }
-  .score div { padding: 16px; }
-  .score b { font-size: 22px; }
+  /* 점수표는 한 장의 목록 카드로 */
+  .score { grid-template-columns: 1fr; gap: 0; padding: 6px 20px; background: var(--surface); border-radius: 20px; }
+  .score div { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-radius: 0; background: none; }
+  .score div + div { border-top: 1px solid var(--line); }
+  .score b { font-size: 20px; flex: none; }
+  .score span { text-align: right; }
 }
 @media (prefers-reduced-motion: reduce) {
   #scroll { scroll-behavior: auto; }
