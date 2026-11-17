@@ -97,6 +97,28 @@ nav a { flex: none; display: inline-flex; align-items: center; height: 38px; fon
 nav a:hover { color: var(--ink); }
 nav a[aria-current="true"] { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
 
+/* 최근 올라온 영상 */
+.recent { margin-top: 4px; }
+.recent h2 { margin: 0 0 12px 4px; }
+.rail { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x proximity; padding: 2px 0 6px; scrollbar-width: none; margin-right: -20px; padding-right: 20px; }
+.rail::-webkit-scrollbar { display: none; }
+.vcard { flex: none; width: 236px; scroll-snap-align: start; display: flex; flex-direction: column; gap: 4px; padding: 12px 12px 16px; background: var(--surface); border-radius: 20px; color: var(--ink); text-decoration: none; transition: transform .1s; }
+.vcard:active { transform: scale(.98); }
+.vcard img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; background: var(--fill); margin-bottom: 8px; }
+.vmeta { display: flex; align-items: center; gap: 8px; min-height: 22px; }
+.vtag { font-size: 12px; font-weight: 600; color: var(--accent-text); background: var(--accent-soft); padding: 2px 8px; border-radius: 6px; }
+.vdate { font-size: 12px; color: var(--muted); }
+.vtitle { font-size: 16px; font-weight: 700; line-height: 1.4; letter-spacing: -0.02em; padding-inline: 2px; }
+.vsub { font-size: 14px; color: var(--ink-2); line-height: 1.45; padding-inline: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.vtech { font-size: 13px; color: var(--muted); padding-inline: 2px; margin-top: 2px; }
+
+/* 안내 줄 + 결과 개수 */
+.legend { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 14px 4px 0; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 4px; background: var(--accent); margin-right: 6px; vertical-align: -1px; }
+#result-count { font-weight: 600; color: var(--ink-2); }
+.toggle { font: inherit; font-size: 14px; height: 48px; padding: 0 16px; border: 0; border-radius: 14px; background: var(--surface); color: var(--ink-2); cursor: pointer; transition: background .15s, color .15s; }
+.toggle[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+
 /* 분류 카드 */
 main section {
   margin-top: 16px; padding: 28px 24px 12px;
@@ -134,6 +156,8 @@ footer a { color: var(--muted); }
   .search input { height: 46px; border-radius: 14px; }
   .seg { padding: 3px; }
   .seg button { height: 34px; font-size: 13px; padding: 0 14px; }
+  .toggle { height: 40px; font-size: 13px; padding: 0 14px; border-radius: 12px; }
+  .vcard { width: 212px; }
   nav { margin-top: 8px; }
   nav a { height: 34px; padding: 0 14px; }
   main section { padding: 22px 18px 8px; border-radius: 20px; }
@@ -148,6 +172,6 @@ footer a { color: var(--muted); }
 }
 @media (prefers-reduced-motion: reduce) {
   #scroll { scroll-behavior: auto; }
-  .pill, .seg button, nav a, .search input { transition: none; }
-  .pill:active { transform: none; }
+  .pill, .seg button, .toggle, nav a, .search input, .vcard { transition: none; }
+  .pill:active, .vcard:active { transform: none; }
 }

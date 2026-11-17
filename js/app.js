@@ -24,6 +24,12 @@
   var bar = document.querySelector('.bar');
   var btnKo = document.getElementById('lang-ko');
   var btnEn = document.getElementById('lang-en');
+  var onlyBtn = document.getElementById('only-video');
+  var recentEl = document.getElementById('recent');
+  var countEl = document.getElementById('result-count');
+  var onlyVideo = false;
+  try { onlyVideo = localStorage.getItem('bjjOnlyVideo') === '1'; } catch (e) {}
+  var recent = [];
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -61,16 +67,19 @@
     var term = input.value.trim().toLowerCase();
     var html = '';
     var navHtml = '';
+    var shown = 0;
 
     data.sections.forEach(function (sec) {
       var secHtml = '';
       sec.groups.forEach(function (g) {
         var groupMatch = term && g.name.toLowerCase().indexOf(term) > -1;
         var items = g.items.filter(function (it) {
+          if (onlyVideo && !B.isHttp(it.video)) return false;
           return !term || groupMatch ||
             it.ko.toLowerCase().indexOf(term) > -1 || it.en.toLowerCase().indexOf(term) > -1;
         });
         if (!items.length) return;
+        shown += items.length;
         secHtml += '<div class="row"><h3>' + esc(g.name) + '</h3><div>' +
           (g.note ? '<p class="note">' + esc(g.note) + '</p>' : '') +
           '<div class="pills">' + items.map(function (it) {
@@ -86,7 +95,9 @@
       }
     });
 
-    main.innerHTML = html || '<p class="empty">' + esc(site.emptyText) + '</p>';
+    main.innerHTML = html || '<p class="empty">' + esc(onlyVideo && !term ? '아직 영상이 연결된 기술이 없습니다.' : site.emptyText) + '</p>';
+    countEl.textContent = (term || onlyVideo) ? shown + '개 기술' : '';
+    recentEl.hidden = !recent.length || !!term || onlyVideo;
     nav.innerHTML = navHtml;
     syncBar();
     lastSpy = '';
@@ -136,6 +147,61 @@
     render();
   }
 
+  // 최근 올라온 영상: 동기화가 기록한 sync/videos.json 을 읽어 카드로 보여준다 (없으면 숨김)
+  function fmtDate(iso) {
+    var d = new Date(iso);
+    return isNaN(d) ? '' : (d.getMonth() + 1) + '월 ' + d.getDate() + '일';
+  }
+  function renderRecent() {
+    if (!recent.length) { recentEl.hidden = true; return; }
+    recentEl.innerHTML = '<h2>최근 올라온 영상</h2><div class="rail">' + recent.map(function (v) {
+      var segs = String(v.title || '').split(/\s*[|｜]\s*/);
+      var tag = v.series || (segs.length > 2 ? segs[segs.length - 1] : '');
+      var sub = segs.length > 1 && segs[1] !== tag ? segs[1] : '';
+      var techs = (v.items || []).slice(0, 3).map(function (k) { return k.split('/').pop(); }).join(' · ');
+      return '<a class="vcard" href="https://www.youtube.com/watch?v=' + encodeURIComponent(v.id) +
+        '" target="_blank" rel="noopener noreferrer">' +
+        '<img src="https://i.ytimg.com/vi/' + encodeURIComponent(v.id) + '/mqdefault.jpg" alt="" loading="lazy">' +
+        '<div class="vmeta">' + (tag ? '<span class="vtag">' + esc(tag) + '</span>' : '') +
+        '<span class="vdate">' + esc(fmtDate(v.published)) + '</span></div>' +
+        '<b class="vtitle">' + esc(segs[0]) + '</b>' +
+        (sub ? '<span class="vsub">' + esc(sub) + '</span>' : '') +
+        (techs ? '<span class="vtech">' + esc(techs) + '</span>' : '') + '</a>';
+    }).join('') + '</div>';
+    recentEl.hidden = !!input.value.trim() || onlyVideo;
+    syncBar();
+  }
+  function loadRecent() {
+    if (!window.fetch || /[?&]preview\b/.test(location.search)) return;
+    fetch('sync/videos.json?_=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+      return r.ok ? r.json() : null;
+    }).then(function (j) {
+      if (!j || !j.videos) return;
+      recent = Object.keys(j.videos).map(function (id) {
+        var v = j.videos[id]; v.id = id; return v;
+      }).filter(function (v) { return v.published; }).sort(function (a, b) {
+        return a.published < b.published ? 1 : -1;
+      }).slice(0, 8);
+      renderRecent();
+    }).catch(function () {});
+  }
+
+  onlyBtn.setAttribute('aria-pressed', String(onlyVideo));
+  onlyBtn.addEventListener('click', function () {
+    onlyVideo = !onlyVideo;
+    onlyBtn.setAttribute('aria-pressed', String(onlyVideo));
+    try { localStorage.setItem('bjjOnlyVideo', onlyVideo ? '1' : '0'); } catch (e) {}
+    render();
+  });
+  // 키보드 / 를 누르면 검색창으로 이동
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+    var t = e.target && e.target.tagName;
+    if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
+    e.preventDefault();
+    input.focus();
+  });
+
   btnKo.addEventListener('click', function () { setLang('ko'); });
   btnEn.addEventListener('click', function () { setLang('en'); });
   input.addEventListener('input', render);
@@ -161,6 +227,7 @@
 
   applySite();
   render();
+  loadRecent();
   // 주소에 #분류 가 붙어 있으면 (화면이 그려진 뒤) 그 분류로 이동
   if (location.hash.length > 1) {
     var target = document.getElementById(decodeURIComponent(location.hash.slice(1)));

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>주짓수 화이트벨트 영상</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="css/style.css?v=20261117d">
+<link rel="stylesheet" href="css/style.css?v=20261117e">
 </head>
 <body>
 <div id="scroll">
@@ -18,6 +18,8 @@
   <div class="score" id="site-scores" aria-label="기본 점수 체계"></div>
 </header>
 
+<section id="recent" class="recent" aria-label="최근 올라온 영상" hidden></section>
+
 <div class="bar">
   <div class="tools">
     <div class="search"><input id="q" type="search" placeholder="기술 검색 (예: 암바, 스윕, 라쏘)" aria-label="기술 검색" autocomplete="off"></div>
@@ -25,9 +27,12 @@
       <button id="lang-ko" type="button" aria-pressed="true">한국어 검색</button>
       <button id="lang-en" type="button" aria-pressed="false">English 검색</button>
     </div>
+    <button class="toggle" id="only-video" type="button" aria-pressed="false">영상 있는 것만</button>
   </div>
   <nav id="nav" aria-label="분류"></nav>
 </div>
+
+<div class="legend" id="legend"><span><i></i>파란색 칩은 영상이 바로 연결된 기술</span><span id="result-count" aria-live="polite"></span></div>
 
 <main id="main"></main>
 
@@ -37,8 +42,8 @@
 </footer>
 </div>
 </div>
-<script src="data.js?v=20261117d"></script>
-<script src="js/shared.js?v=20261117d"></script>
-<script src="js/app.js?v=20261117d"></script>
+<script src="data.js?v=20261117e"></script>
+<script src="js/shared.js?v=20261117e"></script>
+<script src="js/app.js?v=20261117e"></script>
 </body>
 </html>
