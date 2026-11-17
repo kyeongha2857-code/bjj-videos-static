@@ -13,6 +13,10 @@
 | `config.properties` | 관리자 설정 (관리자 비밀번호, GitHub 연결 기본값) |
 | `css/`, `js/` | 화면 스타일과 스크립트 |
 
+## 다른 계정으로 옮기기
+
+이 사이트를 다른 GitHub 계정으로 옮기려면 [MIGRATION.md](MIGRATION.md)를 따라 하세요. 클릭만으로 할 수 있게 순서대로 적었습니다.
+
 ## GitHub Pages로 열기
 
 1. 저장소의 `Settings` → `Pages`로 들어갑니다.
