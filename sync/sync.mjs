@@ -150,8 +150,11 @@ let newCount = 0;
 for (const v of all) {
   const known = state.videos[v.id];
   let keys, status, series = known?.series ?? null;
-  if (Array.isArray(overrides[v.id])) {                 // 직접 지정한 연결이 가장 우선
-    keys = overrides[v.id].filter((k) => byKey.has(k));
+  const ov = overrides[v.id];
+  const ovItems = Array.isArray(ov) ? ov : ov && Array.isArray(ov.items) ? ov.items : null;
+  const force = !!(ov && !Array.isArray(ov) && ov.force); // force: 다른 자동 연결이 있어도 이 영상으로 바꿈 (직접 넣은 링크는 그대로)
+  if (ovItems) {                                        // 직접 지정한 연결이 가장 우선
+    keys = ovItems.filter((k) => byKey.has(k));
     status = keys.length ? 'ok' : 'no-item';
   } else if (known) {                                   // 이미 정해 둔 연결 재사용
     keys = (known.items || []).filter((k) => byKey.has(k));
@@ -181,9 +184,10 @@ for (const v of all) {
     const it = byKey.get(k).ref;
     const prev = state.auto[k];
     const mine = prev && it.video === watchUrl(prev.videoId);
-    if (!it.video || (mine && score > prev.score)) {      // 비어 있거나, 이 스크립트가 넣은 더 약한 연결일 때만
+    if (it.video === watchUrl(v.id)) continue;            // 이미 같은 영상이면 할 일 없음
+    if (!it.video || (mine && (force || score > prev.score))) {      // 비어 있거나, 이 스크립트가 넣은 더 약한 연결일 때만
       it.video = watchUrl(v.id);
-      state.auto[k] = { videoId: v.id, score };
+      state.auto[k] = { videoId: v.id, score: force ? 99 : score };
       applied.push(k);
     }
   }

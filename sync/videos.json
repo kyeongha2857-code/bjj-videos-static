@@ -35,7 +35,9 @@
     "escape/사이드를 뺏겼을 때/사이드 이스케이프"
    ],
    "applied": [
-    "terms/바닥에서 움직이기/브릿지"
+    "terms/바닥에서 움직이기/브릿지",
+    "terms/바닥에서 움직이기/새우빼기",
+    "escape/사이드를 뺏겼을 때/사이드 이스케이프"
    ]
   },
   "pCGG2BZfDwA": {
@@ -214,7 +216,7 @@
  "auto": {
   "escape/사이드를 뺏겼을 때/사이드 이스케이프": {
    "videoId": "hNDZ-uk2-0c",
-   "score": 2
+   "score": 99
   },
   "terms/바닥에서 움직이기/테크니컬 스탠드업": {
    "videoId": "pCGG2BZfDwA",
@@ -289,8 +291,8 @@
    "score": 2
   },
   "terms/바닥에서 움직이기/새우빼기": {
-   "videoId": "B3WE8ACvU54",
-   "score": 2
+   "videoId": "hNDZ-uk2-0c",
+   "score": 99
   },
   "terms/바닥에서 움직이기/사이드 싯업": {
    "videoId": "EXJPVUuBphk",
@@ -306,7 +308,7 @@
   },
   "terms/바닥에서 움직이기/브릿지": {
    "videoId": "hNDZ-uk2-0c",
-   "score": 1
+   "score": 99
   }
  }
 }

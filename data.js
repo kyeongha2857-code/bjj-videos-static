@@ -48,7 +48,7 @@ window.BJJ_DATA = {
       {
        "ko": "새우빼기",
        "en": "hip escape shrimp",
-       "video": "https://www.youtube.com/watch?v=B3WE8ACvU54"
+       "video": "https://www.youtube.com/watch?v=hNDZ-uk2-0c"
       },
       {
        "ko": "브릿지",
