@@ -78,7 +78,9 @@ h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 
 .score span { font-size: 14px; color: var(--muted); }
 
 /* 검색 바 */
-.bar { position: sticky; top: 0; z-index: 20; background: var(--bg); padding-block: 12px 10px; }
+.bar { position: sticky; top: 0; z-index: 20; background: var(--bg); padding-block: 12px 10px;
+  /* 바 배경을 화면 양끝까지 넓혀서, 좌우로 삐져나온 카드가 바 옆으로 비치지 않게 함 */
+  box-shadow: 0 0 0 100vmax var(--bg); clip-path: inset(0 -100vmax); }
 .tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .search { flex: 1 1 240px; min-width: 0; }
 .search input {
