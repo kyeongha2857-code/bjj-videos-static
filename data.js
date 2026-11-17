@@ -578,12 +578,12 @@ window.BJJ_DATA = {
       {
        "ko": "시저스 스윕",
        "en": "scissor sweep",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=NTcyBIpNIKg"
       },
       {
        "ko": "펜들럼 스윕",
        "en": "pendulum sweep",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=z5TMXWESdC8"
       },
       {
        "ko": "플라워 스윕",

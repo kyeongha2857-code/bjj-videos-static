@@ -211,6 +211,30 @@
    "status": "no-item",
    "items": [],
    "applied": []
+  },
+  "z5TMXWESdC8": {
+   "title": "펜듈럼(시계추) 스윕｜다리 그립과 반동으로 마운트까지｜초보자 스윕 01",
+   "published": "2026-11-17T05:06:20+00:00",
+   "series": "초보자 스윕 01",
+   "status": "ai",
+   "items": [
+    "sweep/클로즈 가드/펜들럼 스윕"
+   ],
+   "applied": [
+    "sweep/클로즈 가드/펜들럼 스윕"
+   ]
+  },
+  "NTcyBIpNIKg": {
+   "title": "시저스 스윕｜기본 동작부터 버티는 상대 무릎 차기까지｜초보자 스윕 02",
+   "published": "2026-11-17T05:07:12+00:00",
+   "series": "초보자 스윕 02",
+   "status": "ok",
+   "items": [
+    "sweep/클로즈 가드/시저스 스윕"
+   ],
+   "applied": [
+    "sweep/클로즈 가드/시저스 스윕"
+   ]
   }
  },
  "auto": {
@@ -309,6 +333,14 @@
   "terms/바닥에서 움직이기/브릿지": {
    "videoId": "hNDZ-uk2-0c",
    "score": 99
+  },
+  "sweep/클로즈 가드/펜들럼 스윕": {
+   "videoId": "z5TMXWESdC8",
+   "score": 2
+  },
+  "sweep/클로즈 가드/시저스 스윕": {
+   "videoId": "NTcyBIpNIKg",
+   "score": 2
   }
  }
 }
