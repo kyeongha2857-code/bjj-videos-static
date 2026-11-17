@@ -30,10 +30,12 @@
    "series": null,
    "status": "ok",
    "items": [
+    "terms/바닥에서 움직이기/브릿지",
+    "terms/바닥에서 움직이기/새우빼기",
     "escape/사이드를 뺏겼을 때/사이드 이스케이프"
    ],
    "applied": [
-    "escape/사이드를 뺏겼을 때/사이드 이스케이프"
+    "terms/바닥에서 움직이기/브릿지"
    ]
   },
   "pCGG2BZfDwA": {
@@ -300,6 +302,10 @@
   },
   "sub/하프 가드/기무라": {
    "videoId": "aU0_yMaT144",
+   "score": 1
+  },
+  "terms/바닥에서 움직이기/브릿지": {
+   "videoId": "hNDZ-uk2-0c",
    "score": 1
   }
  }

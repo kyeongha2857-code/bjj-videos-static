@@ -53,7 +53,7 @@ window.BJJ_DATA = {
       {
        "ko": "브릿지",
        "en": "bridge",
-       "video": ""
+       "video": "https://www.youtube.com/watch?v=hNDZ-uk2-0c"
       },
       {
        "ko": "사이드 싯업",
