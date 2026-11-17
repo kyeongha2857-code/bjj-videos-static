@@ -161,7 +161,7 @@ window.BJJ = (function () {
     if (site.title) document.title = site.title;
     function meta(attr, name, val) {
       var m = document.head.querySelector('meta[' + attr + '="' + name + '"]');
-      if (!val) { if (m) m.remove(); return; }
+      if (!val) return;   // 비어 있으면 index.html 에 적어 둔 값을 그대로 둔다
       if (!m) { m = document.createElement('meta'); m.setAttribute(attr, name); document.head.appendChild(m); }
       m.setAttribute('content', val);
     }
