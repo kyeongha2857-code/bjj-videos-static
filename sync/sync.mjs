@@ -124,32 +124,42 @@ async function askGemini(video) {
 }
 
 // ---------- 실행 ----------
+// 동기화 = 병합(merge): 매번 "알고 있는 모든 영상 → 기술" 연결을 data.js 에 합칩니다.
+//  - 영상이 이미 있는 기술은 그대로 두고, 비어 있는 기술만 채웁니다. (관리자 페이지에서 지운 링크도 다음 동기화 때 다시 채워짐)
+//  - 어느 기술에 연결할지는 영상을 처음 본 때 한 번만 정해 sync/videos.json 에 기록합니다. (AI 호출도 그때 한 번)
+//    연결을 바꾸고 싶으면 sync/videos.json 의 items 를 고치거나 sync/overrides.json 에 적으세요.
 const channels = readJson('sync/channels.json', []);
 const overrides = readJson('sync/overrides.json', {});
 const state = readJson('sync/videos.json', { videos: {}, auto: {} });
 state.videos ||= {}; state.auto ||= {};
+const stateBefore = JSON.stringify(state);
+const dataBefore = JSON.stringify(data);
 
-const found = [];
-for (const ch of channels) found.push(...parseFeed(await fetchFeed(ch.channelId), ch.name));
-// 관리자가 overrides 에 적어 둔 영상(피드에 안 나오는 예전 영상 포함)도 함께 처리
-const FORCE = process.env.FORCE_REPROCESS === 'true'; // 이미 처리한 영상도 다시 처리 (지운 링크를 다시 채울 때)
-for (const id of Object.keys(overrides)) {
-  if (id.startsWith('_') || found.some((v) => v.id === id)) continue;
-  if (state.videos[id] && !FORCE) continue;
-  found.push({ id, title: state.videos[id]?.title || '', published: state.videos[id]?.published || null, channel: channels[0]?.name || '' });
-}
+const found = new Map(); // 피드에 있는 영상
+for (const ch of channels) for (const v of parseFeed(await fetchFeed(ch.channelId), ch.name)) found.set(v.id, v);
+const ids = new Set([...found.keys(), ...Object.keys(state.videos), ...Object.keys(overrides).filter((k) => !k.startsWith('_'))]);
+const all = [...ids].map((id) => ({
+  id,
+  title: found.get(id)?.title || state.videos[id]?.title || '',
+  desc: found.get(id)?.desc || '',
+  published: found.get(id)?.published || state.videos[id]?.published || null,
+})).sort((a, b) => (a.published || '').localeCompare(b.published || ''));
 
 const log = [];
-const fresh = found.filter((v) => FORCE || !state.videos[v.id]).sort((a, b) => (a.published || '').localeCompare(b.published || ''));
-for (const v of fresh) {
-  let keys, status, series = null;
-  if (Array.isArray(overrides[v.id])) {
+let newCount = 0;
+for (const v of all) {
+  const known = state.videos[v.id];
+  let keys, status, series = known?.series ?? null;
+  if (Array.isArray(overrides[v.id])) {                 // 직접 지정한 연결이 가장 우선
     keys = overrides[v.id].filter((k) => byKey.has(k));
     status = keys.length ? 'ok' : 'no-item';
-  } else {
+  } else if (known) {                                   // 이미 정해 둔 연결 재사용
+    keys = (known.items || []).filter((k) => byKey.has(k));
+    status = known.status;
+  } else {                                              // 새 영상: 제목으로 매칭 (+ Gemini 보완)
     const m = matchTitle(v.title);
     keys = m.keys; series = m.series;
-    status = keys.length === 0 ? 'review' : m.ambiguous ? 'review' : 'ok';
+    status = keys.length === 0 || m.ambiguous ? 'review' : 'ok';
     if (status === 'review' && GEMINI_KEY) {
       try {
         const ai = await askGemini(v);
@@ -165,22 +175,20 @@ for (const v of fresh) {
     const it = byKey.get(k).ref;
     const prev = state.auto[k];
     const mine = prev && it.video === watchUrl(prev.videoId);
-    if (!it.video || (mine && score > prev.score)) {
+    if (!it.video || (mine && score > prev.score)) {      // 비어 있거나, 이 스크립트가 넣은 더 약한 연결일 때만
       it.video = watchUrl(v.id);
       state.auto[k] = { videoId: v.id, score };
       applied.push(k);
     }
   }
-  state.videos[v.id] = { title: v.title, published: v.published, series, status, items: keys, applied };
-  log.push(`${status.padEnd(7)} ${v.title}\n         → ${keys.join(', ') || '(연결할 기술 없음)'}${applied.length < keys.length ? `  [이미 영상이 있어 건너뜀: ${keys.length - applied.length}개]` : ''}`);
+  state.videos[v.id] = { title: v.title, published: v.published, series, status, items: keys, applied: known && !applied.length ? known.applied : applied };
+  if (!known) newCount++;
+  if (!known || applied.length)
+    log.push(`${known ? '채움' : '새 영상'} [${status}] ${v.title}\n         → ${applied.join(', ') || '(채울 기술 없음)'}${keys.length > applied.length ? `  [이미 영상이 있어 유지: ${keys.length - applied.length}개]` : ''}`);
 }
 
-if (!fresh.length) {
-  console.log('새 영상이 없습니다.');
-} else {
-  writeData();
-  fs.writeFileSync(P('sync/videos.json'), JSON.stringify(state, null, 1) + '\n');
-  console.log(`새 영상 ${fresh.length}개 처리\n` + log.join('\n'));
-}
+if (JSON.stringify(data) !== dataBefore) writeData();
+if (JSON.stringify(state) !== stateBefore) fs.writeFileSync(P('sync/videos.json'), JSON.stringify(state, null, 1) + '\n');
+console.log(log.length ? `새 영상 ${newCount}개, 링크 병합\n` + log.join('\n') : '변경 없음: 새 영상도 없고 비어 있는 링크도 없습니다.');
 const review = Object.entries(state.videos).filter(([, v]) => v.status === 'review' || v.status === 'no-item');
-if (review.length) console.log(`\n확인이 필요한 영상 ${review.length}개:\n` + review.map(([id, v]) => `- ${v.title} (${watchUrl(id)})`).join('\n'));
+if (review.length) console.log(`\n연결할 기술이 없어 확인이 필요한 영상 ${review.length}개:\n` + review.map(([id, v]) => `- ${v.title} (${watchUrl(id)})`).join('\n'));
