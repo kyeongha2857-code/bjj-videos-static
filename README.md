@@ -13,6 +13,10 @@
 | `config.properties` | 관리자 설정 (관리자 비밀번호, GitHub 연결 기본값) |
 | `css/`, `js/` | 화면 스타일과 스크립트 |
 
+## 유튜브 영상 자동 동기화
+
+새 영상이 올라오면 30분 안에 기술 목록에 자동으로 연결됩니다. 설정 방법은 [AUTO-SYNC.md](AUTO-SYNC.md)를 따라 하세요. (GitHub 자체 예약 실행이 돌지 않아 Google Apps Script로 신호를 보내는 방식을 씁니다.)
+
 ## 다른 계정으로 옮기기
 
 이 사이트를 다른 GitHub 계정으로 옮기려면 [MIGRATION.md](MIGRATION.md)를 따라 하세요. 클릭만으로 할 수 있게 순서대로 적었습니다.
