@@ -40,7 +40,7 @@
   <div class="warn" id="warn-kakao">카카오톡 같은 앱 안에서 열린 화면에서는 설치되지 않습니다. 오른쪽 아래 메뉴에서 <b>Safari로 열기</b>를 눌러 주세요.</div>
   <div class="warn" id="warn-notios">이 설치 방법은 <b>아이폰(Safari)</b> 전용입니다. 안드로이드는 Chrome 메뉴의 "홈 화면에 추가"를 쓰세요.</div>
 
-  <a class="btn" href="install/jiujitsu.mobileconfig">앱 아이콘 설치하기</a>
+  <a class="btn" id="install-btn" href="install/jiujitsu.mobileconfig">앱 아이콘 설치하기</a>
 
   <div class="card">
     <h2>설치 순서 (아이폰)</h2>
@@ -50,6 +50,7 @@
       <li>잠금 화면 암호를 입력하고, <b>"서명되지 않음"</b> 경고가 나오면 <b>설치</b>를 한 번 더 누릅니다.</li>
       <li>홈 화면에 <b>주짓수 樂</b> 아이콘이 생깁니다. 눌러서 열어 보세요.</li>
     </ol>
+    <div class="note" style="margin-top:0;margin-bottom:12px"><b>설치 창이 안 뜨고 파일이 다운로드되기만 한다면</b> 아이폰의 <b>파일</b> 앱 → <b>다운로드</b> 폴더에서 <b>jiujitsu</b> 파일을 누르세요. 그러면 설정 앱에서 설치할 수 있습니다.</div>
     <div class="note">이 프로파일은 앱 아이콘 하나만 추가합니다. 개인정보를 수집하거나 기기 설정을 바꾸지 않습니다. 지우려면 설정 → 일반 → VPN 및 기기 관리 → <b>주짓수 樂 가이드</b> → 프로파일 삭제를 누르면 아이콘도 함께 사라집니다.</div>
   </div>
 
@@ -60,6 +61,19 @@
   var ua = navigator.userAgent || '';
   var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
   if (!ios) document.getElementById('warn-notios').style.display = 'block';
+  // GitHub Pages는 .mobileconfig 파일 형식을 지정하지 못하므로, 아이폰이 프로파일로 인식하도록 형식을 붙여서 연다.
+  var btn = document.getElementById('install-btn');
+  btn.addEventListener('click', function (e) {
+    if (!ios || !window.fetch || !window.URL || !URL.createObjectURL) return;
+    e.preventDefault();
+    fetch(btn.getAttribute('href'), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then(function (buf) {
+        var blob = new Blob([buf], { type: 'application/x-apple-aspen-config' });
+        location.href = URL.createObjectURL(blob);
+      })
+      .catch(function () { location.href = btn.getAttribute('href'); });
+  });
   if (ios && /KAKAOTALK|FBAN|FBAV|Instagram|NAVER|Line\//i.test(ua)) document.getElementById('warn-kakao').style.display = 'block';
 })();
 </script>
