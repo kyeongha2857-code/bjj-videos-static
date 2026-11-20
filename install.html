@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>앱 설치 · 주짓수 樂 가이드</title>
+<meta name="robots" content="noindex">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root { --bg:#f2f4f6; --surface:#fff; --ink:#191f28; --ink-2:#4e5968; --muted:#8b95a1; --line:#e5e8eb; --accent:#3182f6; --accent-soft:#e8f3ff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#17171c; --surface:#202027; --ink:#f9fafb; --ink-2:#c3c6cb; --muted:#9ea4ad; --line:#2e2e38; --accent:#4593fc; --accent-soft:#1f2a3a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:"Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", sans-serif; line-height:1.55; word-break:keep-all; }
+  .wrap { max-width:520px; margin:0 auto; padding:32px 20px 56px; }
+  .icon { width:72px; height:72px; border-radius:18px; display:block; margin:0 0 20px; }
+  h1 { font-size:24px; line-height:1.3; margin:0 0 8px; letter-spacing:-0.02em; }
+  .lede { color:var(--ink-2); margin:0 0 24px; }
+  .btn { display:block; width:100%; text-align:center; background:var(--accent); color:#fff; font-weight:700; font-size:17px; padding:16px; border-radius:14px; text-decoration:none; }
+  .btn:active { opacity:.85; }
+  .card { background:var(--surface); border-radius:16px; padding:20px; margin-top:16px; }
+  .card h2 { font-size:16px; margin:0 0 12px; }
+  ol { margin:0; padding-left:20px; color:var(--ink-2); }
+  li { margin:0 0 8px; }
+  li b { color:var(--ink); }
+  .note { background:var(--accent-soft); border-radius:12px; padding:12px 14px; color:var(--ink-2); font-size:14px; margin-top:16px; }
+  .warn { display:none; background:#fff4e5; color:#8a5300; border-radius:12px; padding:12px 14px; font-size:14px; margin-bottom:16px; }
+  .small { color:var(--muted); font-size:13px; margin-top:20px; }
+  a.text { color:var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="icon" src="icons/apple-touch-icon.png" alt="">
+  <h1>주짓수 樂 가이드<br>앱 아이콘 설치</h1>
+  <p class="lede">버튼 한 번으로 홈 화면에 앱 아이콘이 생깁니다. 주소창 없이 전체 화면으로 열립니다.</p>
+
+  <div class="warn" id="warn-kakao">카카오톡 같은 앱 안에서 열린 화면에서는 설치되지 않습니다. 오른쪽 아래 메뉴에서 <b>Safari로 열기</b>를 눌러 주세요.</div>
+  <div class="warn" id="warn-notios">이 설치 방법은 <b>아이폰(Safari)</b> 전용입니다. 안드로이드는 Chrome 메뉴의 "홈 화면에 추가"를 쓰세요.</div>
+
+  <a class="btn" href="install/jiujitsu.mobileconfig">앱 아이콘 설치하기</a>
+
+  <div class="card">
+    <h2>설치 순서 (아이폰)</h2>
+    <ol>
+      <li>위 버튼을 누르고 <b>"구성 프로파일을 다운로드하려고 합니다"</b> 창에서 <b>허용</b>을 누릅니다.</li>
+      <li><b>설정</b> 앱을 열면 맨 위에 <b>"프로파일이 다운로드됨"</b>이 보입니다. 눌러서 <b>설치</b>를 누릅니다. (찾을 수 없으면 설정 → 일반 → VPN 및 기기 관리)</li>
+      <li>잠금 화면 암호를 입력하고, <b>"서명되지 않음"</b> 경고가 나오면 <b>설치</b>를 한 번 더 누릅니다.</li>
+      <li>홈 화면에 <b>주짓수 樂</b> 아이콘이 생깁니다. 눌러서 열어 보세요.</li>
+    </ol>
+    <div class="note">이 프로파일은 앱 아이콘 하나만 추가합니다. 개인정보를 수집하거나 기기 설정을 바꾸지 않습니다. 지우려면 설정 → 일반 → VPN 및 기기 관리 → <b>주짓수 樂 가이드</b> → 프로파일 삭제를 누르면 아이콘도 함께 사라집니다.</div>
+  </div>
+
+  <p class="small">"서명되지 않음"은 Apple에 등록된 회사 인증서로 서명하지 않았다는 뜻입니다. 이 파일은 사이트 운영자가 직접 만든 것입니다. <a class="text" href="./">사이트로 돌아가기</a></p>
+</div>
+<script>
+(function () {
+  var ua = navigator.userAgent || '';
+  var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  if (!ios) document.getElementById('warn-notios').style.display = 'block';
+  if (ios && /KAKAOTALK|FBAN|FBAV|Instagram|NAVER|Line\//i.test(ua)) document.getElementById('warn-kakao').style.display = 'block';
+})();
+</script>
+</body>
+</html>
