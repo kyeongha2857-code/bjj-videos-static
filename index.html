@@ -15,6 +15,15 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
+<!-- 아이폰/안드로이드 홈 화면에 추가했을 때 앱처럼 열리게 하는 설정 -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="주짓수 樂">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f2f4f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17171c" media="(prefers-color-scheme: dark)">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="css/style.css?v=20261117j">
 </head>
@@ -56,5 +65,11 @@
 <script src="data.js?v=20261117j"></script>
 <script src="js/shared.js?v=20261117j"></script>
 <script src="js/app.js?v=20261117j"></script>
+<script>
+// 홈 화면 앱용 서비스 워커 (인터넷이 안 될 때 마지막 화면을 보여 줌). 실패해도 사이트는 정상 동작한다.
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
 </body>
 </html>

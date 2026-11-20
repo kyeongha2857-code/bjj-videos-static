@@ -1,0 +1,16 @@
+{
+  "name": "주짓수 樂 가이드",
+  "short_name": "주짓수 樂",
+  "description": "노량진 주짓수락 화이트벨트 기술 영상 모음",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f4f6",
+  "theme_color": "#f2f4f6",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
