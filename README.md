@@ -20,6 +20,13 @@
 **가장 쉬운 방법: 설치 페이지 (아이폰)**
 아이폰 Safari에서 `https://www.noryangjinbjj.cloud/install.html` 을 열고 **앱 아이콘 설치하기**를 누르면, 구성 프로파일(`install/jiujitsu.mobileconfig`)이 홈 화면에 전체 화면 아이콘을 만들어 줍니다. 설정 앱에서 프로파일을 설치하는 과정이 필요하고, "서명되지 않음" 경고가 나오는 것은 정상입니다. 아이콘 이름, 주소를 바꾸려면 이 프로파일을 다시 만들어야 합니다.
 
+**안드로이드 앱(APK)**
+같은 설치 페이지(`/install.html`)의 **앱 다운로드 (APK)** 버튼으로 앱을 내려받아 설치할 수 있습니다. 스토어에 올라간 앱이 아니라서 "출처를 알 수 없는 앱" 허용이 필요합니다.
+- 앱은 사이트를 전체 화면으로 열어 줍니다. 사이트 내용이 바뀌어도 앱을 다시 설치할 필요가 없습니다.
+- 앱 소스는 `android/` 폴더에 있고, `android/` 안을 고쳐 push하면 GitHub Actions(**안드로이드 앱(APK) 빌드**)가 APK를 새로 만들어 Releases(`android-latest`)에 올립니다.
+- 앱이 여는 사이트 주소를 바꾸려면 `android/app/src/main/java/cloud/noryangjinbjj/app/MainActivity.java` 의 `START_URL` 한 줄을 고치세요.
+- 서명 키(`android/release.keystore`)를 저장소에 함께 두었습니다. 스토어에 올리지 않는 앱이라 업데이트가 같은 서명으로 이어지게 하려는 것입니다. 스토어에 올릴 계획이 생기면 새 키를 만들어 안전하게 따로 보관하세요.
+
 **직접 추가하는 방법**
 
 **아이폰 (Safari로 열어야 합니다)**
