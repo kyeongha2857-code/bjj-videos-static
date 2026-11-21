@@ -28,8 +28,10 @@
   .note { background:var(--accent-soft); border-radius:12px; padding:12px 14px; color:var(--ink-2); font-size:14px; margin-top:16px; }
   .warn { display:none; background:#fff4e5; color:#8a5300; border-radius:12px; padding:12px 14px; font-size:14px; margin-bottom:16px; }
   .small { color:var(--muted); font-size:13px; margin-top:20px; }
-  #platforms { display:flex; flex-direction:column; gap:32px; }
-  h2.plat { font-size:18px; margin:0 0 12px; letter-spacing:-0.01em; }
+  .tabs { display:flex; gap:4px; background:var(--line); border-radius:14px; padding:4px; margin:0 0 20px; }
+  .tab { flex:1; border:0; background:transparent; color:var(--ink-2); font:inherit; font-weight:700; font-size:16px; padding:12px; border-radius:11px; cursor:pointer; }
+  .tab[aria-selected="true"] { background:var(--surface); color:var(--accent); box-shadow:0 1px 3px rgba(0,0,0,.12); }
+  section[hidden] { display:none; }
   a.text { color:var(--accent); }
 </style>
 </head>
@@ -42,9 +44,12 @@
   <div class="warn" id="warn-kakao">카카오톡 같은 앱 안에서 열린 화면에서는 설치되지 않을 수 있습니다. 메뉴에서 <b>Safari로 열기</b>(아이폰) 또는 <b>다른 브라우저로 열기</b>(안드로이드)를 눌러 주세요.</div>
   <div class="warn" id="warn-desktop">지금 보고 계신 기기는 컴퓨터로 보입니다. 설치할 <b>휴대폰에서 이 페이지를 다시 열어</b> 주세요.</div>
 
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-ios" data-t="ios" aria-selected="true">아이폰</button>
+    <button class="tab" role="tab" id="tab-android" data-t="android" aria-selected="false">안드로이드</button>
+  </div>
   <div id="platforms">
   <section id="ios">
-  <h2 class="plat">아이폰</h2>
 
   <a class="btn" id="install-btn" href="install/jiujitsu.mobileconfig">앱 아이콘 설치하기</a>
 
@@ -61,8 +66,7 @@
   </div>
   </section>
 
-  <section id="android">
-    <h2 class="plat">안드로이드</h2>
+  <section id="android" hidden>
     <a class="btn" id="apk-btn" href="https://github.com/kyeongha2857-code/bjj-videos-static/releases/download/android-latest/jiujitsu.apk">앱 다운로드 (APK)</a>
     <div class="card">
       <h2>설치 순서</h2>
@@ -86,7 +90,14 @@
   var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
   var android = /Android/i.test(ua);
   if (!ios && !android) document.getElementById('warn-desktop').style.display = 'block';
-  if (android) document.getElementById('android').style.order = -1;
+  function show(t) {
+    ['ios', 'android'].forEach(function (k) {
+      document.getElementById(k).hidden = (k !== t);
+      document.getElementById('tab-' + k).setAttribute('aria-selected', k === t ? 'true' : 'false');
+    });
+  }
+  document.querySelectorAll('.tab').forEach(function (b) { b.addEventListener('click', function () { show(b.getAttribute('data-t')); }); });
+  show(android ? 'android' : 'ios');
   // GitHub Pages는 .mobileconfig 파일 형식을 지정하지 못하므로, 아이폰이 프로파일로 인식하도록 형식을 붙여서 연다.
   var btn = document.getElementById('install-btn');
   btn.addEventListener('click', function (e) {
