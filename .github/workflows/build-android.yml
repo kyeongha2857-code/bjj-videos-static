@@ -34,7 +34,20 @@ jobs:
 
       - name: APK 빌드
         working-directory: android
-        run: gradle --no-daemon assembleRelease -Pvc=${{ github.run_number }}
+        run: |
+          set -o pipefail
+          gradle --no-daemon --console=plain assembleRelease -Pvc=${{ github.run_number }} 2>&1 | tee ../build.log
+
+      - name: 실패하면 원인을 요약에 남기기
+        if: failure()
+        run: |
+          {
+            echo "### 빌드 실패 로그 (마지막 80줄)"
+            echo '```'
+            tail -n 80 build.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::error::$(grep -m1 -E 'What went wrong|error:|FAILURE' -A3 build.log | tr '\n' ' ' | cut -c1-400)"
 
       - name: Releases 에 올리기
         env:

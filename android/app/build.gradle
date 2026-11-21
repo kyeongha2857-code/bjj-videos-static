@@ -11,7 +11,7 @@ android {
         minSdk 23
         targetSdk 34
         // 업데이트하려면 versionCode가 커져야 한다. 자동 빌드가 -Pvc=실행번호 로 넘겨 준다.
-        versionCode (project.findProperty('vc') ?: '1').toInteger()
+        versionCode(((project.findProperty('vc') ?: '1') as String).toInteger())
         versionName '1.0'
     }
 
