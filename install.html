@@ -28,22 +28,28 @@
   .note { background:var(--accent-soft); border-radius:12px; padding:12px 14px; color:var(--ink-2); font-size:14px; margin-top:16px; }
   .warn { display:none; background:#fff4e5; color:#8a5300; border-radius:12px; padding:12px 14px; font-size:14px; margin-bottom:16px; }
   .small { color:var(--muted); font-size:13px; margin-top:20px; }
+  #platforms { display:flex; flex-direction:column; gap:32px; }
+  h2.plat { font-size:18px; margin:0 0 12px; letter-spacing:-0.01em; }
   a.text { color:var(--accent); }
 </style>
 </head>
 <body>
 <div class="wrap">
   <img class="icon" src="icons/apple-touch-icon.png" alt="">
-  <h1>주짓수 樂 가이드<br>앱 아이콘 설치</h1>
-  <p class="lede">버튼 한 번으로 홈 화면에 앱 아이콘이 생깁니다. 주소창 없이 전체 화면으로 열립니다.</p>
+  <h1>주짓수 樂 가이드<br>앱 설치</h1>
+  <p class="lede">아이폰과 안드로이드 모두 홈 화면에서 주소창 없이 앱처럼 열 수 있습니다. 쓰시는 기기의 설치 방법을 따라 해 주세요.</p>
 
-  <div class="warn" id="warn-kakao">카카오톡 같은 앱 안에서 열린 화면에서는 설치되지 않습니다. 오른쪽 아래 메뉴에서 <b>Safari로 열기</b>를 눌러 주세요.</div>
-  <div class="warn" id="warn-notios">이 설치 방법은 <b>아이폰(Safari)</b> 전용입니다. 안드로이드는 Chrome 메뉴의 "홈 화면에 추가"를 쓰세요.</div>
+  <div class="warn" id="warn-kakao">카카오톡 같은 앱 안에서 열린 화면에서는 설치되지 않을 수 있습니다. 메뉴에서 <b>Safari로 열기</b>(아이폰) 또는 <b>다른 브라우저로 열기</b>(안드로이드)를 눌러 주세요.</div>
+  <div class="warn" id="warn-desktop">지금 보고 계신 기기는 컴퓨터로 보입니다. 설치할 <b>휴대폰에서 이 페이지를 다시 열어</b> 주세요.</div>
+
+  <div id="platforms">
+  <section id="ios">
+  <h2 class="plat">아이폰</h2>
 
   <a class="btn" id="install-btn" href="install/jiujitsu.mobileconfig">앱 아이콘 설치하기</a>
 
   <div class="card">
-    <h2>설치 순서 (아이폰)</h2>
+    <h2>설치 순서</h2>
     <ol>
       <li>위 버튼을 누르고 <b>"구성 프로파일을 다운로드하려고 합니다"</b> 창에서 <b>허용</b>을 누릅니다.</li>
       <li><b>설정</b> 앱을 열면 맨 위에 <b>"프로파일이 다운로드됨"</b>이 보입니다. 눌러서 <b>설치</b>를 누릅니다. (찾을 수 없으면 설정 → 일반 → VPN 및 기기 관리)</li>
@@ -53,6 +59,24 @@
     <div class="note" style="margin-top:0;margin-bottom:12px"><b>설치 창이 안 뜨고 파일이 다운로드되기만 한다면</b> 아이폰의 <b>파일</b> 앱 → <b>다운로드</b> 폴더에서 <b>jiujitsu</b> 파일을 누르세요. 그러면 설정 앱에서 설치할 수 있습니다.</div>
     <div class="note">이 프로파일은 앱 아이콘 하나만 추가합니다. 개인정보를 수집하거나 기기 설정을 바꾸지 않습니다. 지우려면 설정 → 일반 → VPN 및 기기 관리 → <b>주짓수 樂 가이드</b> → 프로파일 삭제를 누르면 아이콘도 함께 사라집니다.</div>
   </div>
+  </section>
+
+  <section id="android">
+    <h2 class="plat">안드로이드</h2>
+    <a class="btn" id="apk-btn" href="https://github.com/kyeongha2857-code/bjj-videos-static/releases/download/android-latest/jiujitsu.apk">앱 다운로드 (APK)</a>
+    <div class="card">
+      <h2>설치 순서</h2>
+      <ol>
+        <li>위 버튼을 눌러 <b>jiujitsu.apk</b>를 내려받습니다. "이 파일은 기기에 해를 끼칠 수 있습니다" 경고가 나오면 <b>확인</b> 또는 <b>그래도 다운로드</b>를 누릅니다.</li>
+        <li>다운로드가 끝나면 알림이나 <b>내 파일 → 다운로드</b>에서 파일을 엽니다.</li>
+        <li><b>"출처를 알 수 없는 앱"</b> 설치를 막는다는 안내가 나오면 <b>설정</b>을 눌러 지금 쓰는 브라우저(Chrome 등)의 <b>이 출처 허용</b>을 켜고 뒤로 돌아와 <b>설치</b>를 누릅니다.</li>
+        <li>Google Play 보호 경고가 나오면 <b>자세히</b> → <b>무시하고 설치</b>(또는 <b>계속 설치</b>)를 누릅니다.</li>
+        <li>설치가 끝나면 앱 목록에 <b>주짓수 樂</b> 아이콘이 생깁니다.</li>
+      </ol>
+      <div class="note">화면 문구는 제조사와 안드로이드 버전에 따라 조금씩 다릅니다. 스토어에 올라간 앱이 아니라서 위 경고가 나오는 것입니다. 앱은 사이트를 전체 화면으로 열어 주며, 유튜브 영상은 유튜브 앱이나 브라우저로 열립니다. 새 버전이 나오면 같은 버튼으로 다시 받아 설치하면 덮어씌워집니다.</div>
+    </div>
+  </section>
+  </div>
 
   <p class="small">"서명되지 않음"은 Apple에 등록된 회사 인증서로 서명하지 않았다는 뜻입니다. 이 파일은 사이트 운영자가 직접 만든 것입니다. <a class="text" href="./">사이트로 돌아가기</a></p>
 </div>
@@ -60,7 +84,9 @@
 (function () {
   var ua = navigator.userAgent || '';
   var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-  if (!ios) document.getElementById('warn-notios').style.display = 'block';
+  var android = /Android/i.test(ua);
+  if (!ios && !android) document.getElementById('warn-desktop').style.display = 'block';
+  if (android) document.getElementById('android').style.order = -1;
   // GitHub Pages는 .mobileconfig 파일 형식을 지정하지 못하므로, 아이폰이 프로파일로 인식하도록 형식을 붙여서 연다.
   var btn = document.getElementById('install-btn');
   btn.addEventListener('click', function (e) {
@@ -74,7 +100,12 @@
       })
       .catch(function () { location.href = btn.getAttribute('href'); });
   });
-  if (ios && /KAKAOTALK|FBAN|FBAV|Instagram|NAVER|Line\//i.test(ua)) document.getElementById('warn-kakao').style.display = 'block';
+  if (/KAKAOTALK|FBAN|FBAV|Instagram|NAVER|Line\//i.test(ua)) document.getElementById('warn-kakao').style.display = 'block';
+  // 저장소를 다른 계정으로 옮겨도 config.properties 값으로 다운로드 주소를 맞춘다.
+  fetch('config.properties', { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
+    var o = /^\s*github\.owner\s*[=:]\s*(\S+)/m.exec(t), p = /^\s*github\.repo\s*[=:]\s*(\S+)/m.exec(t);
+    if (o && p) document.getElementById('apk-btn').href = 'https://github.com/' + o[1] + '/' + p[1] + '/releases/download/android-latest/jiujitsu.apk';
+  }).catch(function () {});
 })();
 </script>
 </body>
