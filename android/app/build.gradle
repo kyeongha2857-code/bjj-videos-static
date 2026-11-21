@@ -1,0 +1,39 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'cloud.noryangjinbjj.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'cloud.noryangjinbjj.app'
+        minSdk 23
+        targetSdk 34
+        // 업데이트하려면 versionCode가 커져야 한다. 자동 빌드가 -Pvc=실행번호 로 넘겨 준다.
+        versionCode (project.findProperty('vc') ?: '1').toInteger()
+        versionName '1.0'
+    }
+
+    // 스토어에 올리지 않고 직접 설치하는 앱이라, 같은 서명으로 계속 업데이트되도록 키 파일을 저장소에 함께 둔다.
+    signingConfigs {
+        release {
+            storeFile file('../release.keystore')
+            storePassword 'jiujitsu'
+            keyAlias 'jiujitsu'
+            keyPassword 'jiujitsu'
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
